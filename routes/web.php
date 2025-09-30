@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChatbotController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PakaianAdatController;
@@ -42,6 +43,9 @@ Route::get('/terms_conditions',
 function () {
     return view('Terms_Conditions');
 })->name('terms_conditions');
+
+// ------------------- chatbot route -------------------------------------- //
+Route::post('/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
 
 
 // -------------------------------------------------------------------------//

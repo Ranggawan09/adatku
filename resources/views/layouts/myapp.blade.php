@@ -144,6 +144,8 @@
         </div>
     </footer>
 
+    @include('partials.chatbot')
+
     {{-- Scroll to Top Button --}}
     <button id="scroll-to-top" onclick="scrollToTop();"
         class="fixed bottom-5 right-5 z-50 p-3 bg-jawa-400 text-white rounded-full shadow-lg hover:bg-jawa-500 transition-all duration-300 opacity-0 pointer-events-none"

@@ -114,7 +114,7 @@
         </div>
         <div class="details-row">
             <span>Tanggal:</span>
-            <span>{{ date('d/m/Y H:i') }}</span>
+            <span>{{ \Carbon\Carbon::now()->setTimezone('Asia/Jakarta')->format('d/m/Y H:i') }}</span>
         </div>
         <div class="details-row">
             <span>Pelanggan:</span>
@@ -149,13 +149,17 @@
                 <span>TOTAL:</span>
                 <span>Rp{{ number_format($reservation->total_price, 0, ',', '.') }}</span>
             </div>
+            <div class="details-row" style="margin-top: 5px;">
+                <span>Status Pembayaran:</span>
+                <span>{{ $reservation->payment_status }}</span>
+            </div>
         </div>
 
         <div class="line-separator"></div>
 
         <div class="footer-thanks">
             <p>Terima kasih telah memilih Adatku ❤️</p>
-            <p style="font-size: 8pt; margin-top: 5px;">Tunjukkan struk ini untuk pembayaran.</p>
+            <p style="font-size: 8pt; margin-top: 5px;">Tunjukkan struk ini untuk pembayaran/pengambilan pakaian.</p>
         </div>
     </div>
     <script>

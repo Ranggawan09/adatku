@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\MidtransCallbackController;
 use App\Http\Controllers\ChatbotController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\PakaianAdatController;
 use App\Http\Controllers\ClientReservationController;
 use App\Http\Controllers\Admin;
@@ -10,10 +10,6 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\invoiceController;
 use App\Http\Controllers\SearchController;
-use App\Http\Controllers\clientCarController;
-use App\Models\PakaianAdat;
-use App\Models\User;
-use App\Models\Reservation;
 
 
 // ------------------- guest routes --------------------------------------- //
@@ -86,6 +82,18 @@ route::get('invoice/{reservation}', [invoiceController::class, 'invoice'])->name
 
 
 //---------------------------------------------------------------------------//
+
+// Rute untuk pembayaran
+Route::get('/payment/{reservation}', [ClientReservationController::class, 'payment'])->name('payment');
+Route::get('/payment/finish/{reservation}', [ClientReservationController::class, 'paymentFinish'])->name('payment.finish');
+Route::post('/midtrans/callback', [MidtransCallbackController::class, 'handle'])->name('midtrans.callback');
+Route::post('/payment/cod/{reservation}', [ClientReservationController::class, 'payAtStore'])->name('payment.cod');
+
+// Route untuk halaman terima kasih
+Route::get('/thankyou/{reservation}', function ($reservation_id) {
+    $reservation = \App\Models\Reservation::findOrFail($reservation_id);
+    return view('thankyou', compact('reservation'));
+})->name('thankyou');
 
 // Auth::routes(); // Menonaktifkan rute login/register untuk user biasa
 

@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import laravel from "laravel-vite-plugin";
+import { networkInterfaces } from 'os';
 
 export default defineConfig({
     plugins: [
@@ -7,7 +8,6 @@ export default defineConfig({
             input: [
                 "resources/css/app.css",
                 "resources/js/app.js",
-                "node_modules/flowbite/dist/flowbite.min.js",
             ],
             refresh: true,
         }),

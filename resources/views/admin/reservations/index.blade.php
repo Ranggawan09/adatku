@@ -41,6 +41,7 @@
                             <th class="px-4 py-3">Ukuran</th>
                             <th class="px-4 py-3">Tanggal</th>
                             <th class="px-4 py-3">Total Harga</th>
+                            <th class="px-4 py-3">Metode Bayar</th>
                             <th class="px-4 py-3">Status Pembayaran</th>
                             <th class="px-4 py-3">Status</th>
                             <th class="px-4 py-3 ">Aksi</th>
@@ -74,7 +75,15 @@
                                     Rp{{ number_format($reservation->total_price, 0, ',', '.') }}
                                 </td>
                                 <td class="px-4 py-3 text-xs">
-                                    @if ($reservation->payment_status == 'Paid')
+                                    @if ($reservation->payment_method)
+                                        <span
+                                            class="px-2 py-1 font-semibold leading-tight text-gray-700 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-100">
+                                            {{ str_replace('_', ' ', $reservation->payment_method) }}
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-xs">
+                                    @if ($reservation->payment_status == 'Lunas')
                                         <span
                                             class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">
                                             {{ $reservation->payment_status }}
@@ -87,7 +96,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-xs">
-                                    @if ($reservation->status == 'Active')
+                                    @if ($reservation->status == 'Active' || $reservation->status == 'Aktif')
                                         <span
                                             class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">
                                             {{ $reservation->status }}
@@ -127,7 +136,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-8 text-gray-500">No reservations found.</td>
+                                <td colspan="8" class="text-center py-8 text-gray-500">No reservations found.</td>
                             </tr>
                         @endforelse
                     </tbody>

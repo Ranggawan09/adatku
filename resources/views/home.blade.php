@@ -5,7 +5,7 @@
             {{-- hero --}}
             <div class="flex justify-center md:py-10 py-12 mx-auto">
                 <div class="flex flex-col justify-start md:justify-center md:w-3/5 px-6 md:px-0 md:ms-20">
-                    <h1 class="md:text-start text-center font-pakaianAdat font-bold text-gray-900 mb-6 md:mb-8 text-4xl md:text-7xl leading-tight"><span class="text-pr-400">EASY</span>, CEPAT, DAN MUDAH UNTUK MENYEWA
+                    <h1 class="md:text-start text-center font-pakaianAdat font-bold text-gray-900 mb-6 md:mb-8 text-4xl md:text-7xl leading-tight"><span class="text-pr-400">CEPAT DAN MUDAH</span> UNTUK MENYEWA
                         PAKAIAN ADAT</h1>
                 <div class="w-4/5 mx-auto md:w-3/5 md:hidden my-6">
                     <img loading="lazy" src="/storage/home.png" alt="home pakaianAdat" class="w-full h-auto rounded-lg shadow-lg">

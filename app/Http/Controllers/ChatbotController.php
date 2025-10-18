@@ -49,11 +49,8 @@ class ChatbotController extends Controller
             $queryInput = new QueryInput();
             $queryInput->setText($textInput);
 
-            $request = new DetectIntentRequest();
-            $request->setSession($sessionName);
-            $request->setQueryInput($queryInput);
-
-            $response = $sessionsClient->detectIntent($request);
+            $detectIntentRequest = (new DetectIntentRequest())->setSession($sessionName)->setQueryInput($queryInput);
+            $response = $sessionsClient->detectIntent($detectIntentRequest);
             $queryResult = $response->getQueryResult();
             $fulfillmentText = $queryResult->getFulfillmentText();
 

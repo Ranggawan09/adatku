@@ -6,12 +6,22 @@ use App\Models\PakaianAdat;
 use App\Models\Reservation;
 use App\Models\PakaianVariant;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class ClientReservationController extends Controller
 {
+    public function __construct()
+    {
+        // Set konfigurasi Midtrans saat controller diinisialisasi
+        Config::$serverKey = config('midtrans.server_key');
+        Config::$isProduction = config('midtrans.is_production');
+        Config::$isSanitized = config('midtrans.is_sanitized');
+        Config::$is3ds = config('midtrans.is_3ds');
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -101,7 +111,113 @@ class ClientReservationController extends Controller
         $reservation->status = 'Pending';
         $reservation->payment_status = 'Pending'; 
         $reservation->save();
+        
+        // Buat order_id unik setelah reservation memiliki ID
+        $order_id = 'ADATKU-' . $reservation->id . '-' . time();
+        $reservation->order_id = $order_id;
 
-        return view('thankyou', ['reservation' => $reservation]);
+        // --- Integrasi Midtrans Dimulai Di Sini ---
+
+        // 1. Buat detail transaksi untuk Midtrans
+        $transaction_details = [
+            'order_id' => $order_id,
+            'gross_amount' => $reservation->total_price,
+        ];
+
+        // 2. Buat detail item
+        $item_details = [
+            [
+                'id' => $variant->id,
+                'price' => $pakaianAdat->price_per_day,
+                'quantity' => $reservation->days,
+                'name' => $pakaianAdat->nama . ' (' . $variant->size . ')',
+            ],
+        ];
+
+        // 3. Buat detail pelanggan
+        $customer_details = [
+            'first_name' => $user->name,
+            'email' => $user->email, // Pastikan ada email, atau berikan nilai default
+            'phone' => $user->phone,
+            'billing_address' => [
+                'address' => $user->alamat,
+            ]
+        ];
+
+        // 4. Gabungkan semua parameter untuk dikirim ke Midtrans
+        $transaction = [
+            'transaction_details' => $transaction_details,
+            'customer_details' => $customer_details,
+            'item_details' => $item_details,
+            'callbacks' => [
+                'finish' => route('payment.finish', $reservation->id),
+            ],
+        ];
+
+        try {
+            // 5. Dapatkan Snap Token dari Midtrans
+            $snapToken = Snap::getSnapToken($transaction);
+            
+            // 6. Simpan snap_token ke database
+            $reservation->snap_token = $snapToken;
+            $reservation->save();
+
+            // 7. Redirect ke halaman pembayaran
+            return redirect()->route('payment', $reservation->id);
+
+        } catch (\Exception $e) {
+            // Tangani jika ada error dari Midtrans
+            return redirect()->back()->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function payment(Reservation $reservation)
+    {
+        // Di sini kita tidak bisa memvalidasi dengan Auth::id() karena user tidak login
+        // Namun, karena URL-nya unik dan hanya diketahui setelah reservasi, ini cukup aman untuk alur ini.
+        return view('payment', [
+            'snapToken' => $reservation->snap_token,
+            'reservation' => $reservation,
+        ]);
+    }
+
+    public function paymentFinish(Reservation $reservation)
+{
+    try {
+        /** @var \stdClass $status */
+        $status = \Midtrans\Transaction::status($reservation->order_id);
+
+        if ($status->transaction_status === 'settlement' || $status->transaction_status === 'capture') {
+            if ($reservation->payment_status !== 'Lunas') {
+                $reservation->payment_status = 'Lunas';
+                $reservation->status = 'Aktif';
+                if (isset($status->payment_type)) {
+                    $reservation->payment_method = $status->payment_type;
+                }
+                $reservation->save();
+            }
+        }
+
+        $reservation->refresh();
+
+        return view('payment_finish', compact('reservation'));
+    } catch (\Exception $e) {
+        return view('payment_finish', compact('reservation'));
+    }
+}
+
+    /**
+     * Handle Pay at Store option.
+     *
+     * @param  \App\Models\Reservation  $reservation
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function payAtStore(Reservation $reservation)
+    {
+        // Set payment method and due date
+        $reservation->payment_method = 'Bayar di Tempat';
+        $reservation->save();
+
+        return redirect()->route('thankyou', ['reservation' => $reservation->id]);
     }
 }

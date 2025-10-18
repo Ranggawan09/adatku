@@ -44,7 +44,7 @@ class ReservationSeeder extends Seeder
                 'price_per_day' => $pricePerDay,
                 'total_price' => $pricePerDay,
                 'status' => ['Pending', 'Active', 'Canceled'][array_rand(['Pending','Active','Canceled'])],
-                'payment_status' => ['Pending', 'Paid', 'Canceled'][array_rand(['Pending','Paid','Canceled'])],
+                'payment_status' => ['Pending', 'Lunas', 'Canceled'][array_rand(['Pending','Lunas','Canceled'])],
                 'created_at' => $start->toDateString(),
                 'updated_at' => $start->toDateString(),
             ];

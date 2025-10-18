@@ -38,9 +38,9 @@
                             class="text-xs font-semibold tracking-wide text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
                             <th class="text-center px-4 py-3 w-48">Name</th>
                             <th class="text-center px-4 py-3 w-24">No Whatsapp</th>
-                            <th class="text-center px-4 py-3 w-24">Joined at</th>
-                            <th class="text-center w-56 px-4 py-3">Reservations</th>
-                            <th class="text-center px-4 py-3 w-26">Actions</th>
+                            <th class="text-center px-4 py-3 w-24">Tanggal Bergabung</th>
+                            <th class="text-center w-56 px-4 py-3">Reservasi</th>
+                            <th class="text-center px-4 py-3 w-26">Aksi</th>
 
                         </tr>
                     </thead>

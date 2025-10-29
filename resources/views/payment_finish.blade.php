@@ -9,10 +9,10 @@
             Kami sedang memproses pembayaran Anda. Status pembayaran akan diperbarui secara otomatis.
         </p>
         <div class="border-t pt-6 text-left">
-            <p class="mb-2"><span class="font-semibold">ID Reservasi:</span> #{{ $reservation->id }}</p>
+            <p class="mb-2"><span class="font-semibold">ID Reservasi:</span> {{ $reservation->order_id }}</p>
             <p class="mb-2"><span class="font-semibold">Item:</span> {{ $reservation->pakaianAdat->nama }}</p>
             <p class="mb-4"><span class="font-semibold">Total:</span> Rp{{ number_format($reservation->total_price, 0, ',', '.') }}</p>
-            <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex flex-col sm:flex-row sm:justify-between gap-4">
                 <a href="{{ route('invoice', $reservation->id) }}" target="_blank" class="w-full sm:w-auto inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 text-center">
                     Cetak Invoice
                 </a>

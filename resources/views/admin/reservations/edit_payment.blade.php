@@ -27,7 +27,7 @@
                             name="payment_status" id="payment_status">
                             <option value="Pending">Pending</option>
                             <option value="Lunas">Dibayar</option>
-                            <option value="Canceled">Batal</option>
+                            <option value="Dibatalkan">Batal</option>
                         </select>
                     </div>
                     <div class="flex justify-center mt-12">

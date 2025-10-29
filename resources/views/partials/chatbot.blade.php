@@ -111,7 +111,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const messageBubble = document.createElement('div');
         
         messageWrapper.classList.add('flex', 'mb-3');
-        messageBubble.classList.add('p-3', 'rounded-lg', 'max-w-xs');
+        messageBubble.classList.add('p-3', 'rounded-lg', 'max-w-xs', 'text-left');
+
+        // Ganti • dengan <br> untuk membuat baris baru, khusus untuk balasan dari bot
+        text = (sender === 'bot') ? text.replace(/•/g, '<br>•') : text;
+
         messageBubble.innerHTML = `<p>${text}</p>`;
 
         if (sender === 'user') {

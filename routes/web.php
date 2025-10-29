@@ -42,7 +42,17 @@ function () {
 
 // ------------------- chatbot route -------------------------------------- //
 Route::post('/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
+Route::get('/chatbot/cek-status/{transaction_id}', [ChatbotController::class, 'cekStatus']);
+Route::get('/chatbot/cek-ketersediaan', [ChatbotController::class, 'cekKetersediaan']);
 
+// --- RASA ACTION SERVER API ROUTES ---
+// Grup ini sengaja diletakkan di web.php untuk menghindari middleware 'auth:sanctum'
+// yang ada di grup 'api' pada routes/api.php.
+// Middleware 'api' dari Kernel.php tetap akan berlaku (throttling, bindings).
+Route::prefix('api/chatbot')->name('api.chatbot.')->group(function () {
+    Route::get('/cek-ketersediaan', [\App\Http\Controllers\Api\ChatbotApiController::class, 'checkAvailability'])->name('checkAvailability');
+    Route::get('/cek-status/{invoice}', [\App\Http\Controllers\Api\ChatbotApiController::class, 'checkOrderStatus'])->name('checkOrderStatus');
+});
 
 // -------------------------------------------------------------------------//
 

@@ -7,14 +7,10 @@
             </div>
             <div class=" relative md:m-12 m-6 md:w-1/2 md:p-6">
 
-                <p>Welcome to our car rental shop conveniently located in the heart of the city. Situated in a prime
-                    location, our shop provides easy access and a central hub for all your car rental needs. Whether you are
-                    a local resident or a traveler exploring the area, finding us is a breeze.</p>
+                <p class="text-align: justify">Jasa persewaan pakaian adat yang berlokasi di Dukuh Klopo, Peterongan Jombang. Kami menemukan bahwa semakin banyak yang tertarik untuk melihat berbagai macam budaya dari banyaknya daerah di Indonesia. Setiap daerah memilik ciri khas dan tampilan serta filosofisnya masing-masing. Kami memberikan pelayanan dengan pengenalan budaya. 
+                Jika anda tertarik untuk menggunakan jasa kami, jangan ragu untuk menghubungi.</p>
                 <br>
-                <p>Our shop is strategically positioned near major transportation hubs, including airports, train stations,
-                    and bus terminals, making it incredibly convenient for you to pick up and drop off your rental vehicle.
-                    Upon arrival, our friendly staff will warmly greet you, ensuring a smooth and efficient rental process
-                    from start to finish.</p>
+                <p class="text-align: justify">Griya Paes berlokasi strategis dan mudah diakses, dekat dengan berbagai fasilitas publik dan jalur transportasi utama. Hal ini membuat proses penjemputan dan pengembalian pakaian adat Anda menjadi super mudah dan terjamin efisien. Cukup melangkah masuk, staf kami yang ramah akan menyambut dengan hangat, memastikan persiapan istimewa Anda berjalan mulus dari awal hingga akhir.</p>
             </div>
 
         </div>

@@ -25,10 +25,10 @@
                         <select
                             class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-pr-400 sm:text-sm sm:leading-6"
                             name="status" id="status">
-                            <option value="Active">Aktif</option>
+                            <option value="Aktif">Aktif</option>
                             <option value="Pending">Pending</option>
-                            <option value="Ended">Berakhir</option>
-                            <option value="Canceled">Batal</option>
+                            <option value="Berakhir">Berakhir</option>
+                            <option value="Dibatalkan">Batal</option>
                         </select>
                     </div>
                     <div class="flex justify-center mt-12">

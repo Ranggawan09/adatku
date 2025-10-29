@@ -110,7 +110,7 @@
 
         <div class="details-row">
             <span>Invoice:</span>
-            <span>#{{ $reservation->id }}-{{ date('Ymd') }}</span>
+            <span>{{ $reservation->order_id }}</span>
         </div>
         <div class="details-row">
             <span>Tanggal:</span>

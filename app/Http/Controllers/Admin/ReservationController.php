@@ -54,11 +54,11 @@ class ReservationController extends Controller
 
     public function updateStatus(Reservation $reservation, Request $request)
     {
-        $request->validate(['status' => 'required|in:Active,Pending,Ended,Canceled']);
+        $request->validate(['status' => 'required|in:Aktif,Pending,Berakhir,Dibatalkan']);
 
         $reservation->status = $request->status;
         $pakaianAdat = $reservation->pakaianAdat;
-        if ($request->status == 'Ended' || $request->status == 'Canceled') {
+        if ($request->status == 'Berakhir' || $request->status == 'Dibatalkan') {
             $pakaianAdat->status = 'Tersedia';
             $pakaianAdat->save();
         }

@@ -67,10 +67,10 @@ class ClientReservationController extends Controller
             ]
         );
 
-        // Check if the user has more than 2 active reservations
+        // Check if the user has more than 2 Aktif reservations
         $userReservationsCount = Reservation::where('user_id', $user->id)->whereIn('status', ['Pending', 'Aktif'])->count();
         if ($userReservationsCount >= 2) {
-            return redirect()->back()->with('error', 'You cannot have more than 2 active reservations 😉.');
+            return redirect()->back()->with('error', 'Kamu tidak dapat memiliki 2 pesanan aktif 😉.');
         }
 
         // extract start and end date from the request
@@ -113,7 +113,7 @@ class ClientReservationController extends Controller
         $reservation->save();
         
         // Buat order_id unik setelah reservation memiliki ID
-        $order_id = 'ADATKU-' . $reservation->id . '-' . time();
+        $order_id = $reservation->id.time();
         $reservation->order_id = $order_id;
 
         // --- Integrasi Midtrans Dimulai Di Sini ---

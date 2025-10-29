@@ -96,17 +96,17 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-xs">
-                                    @if ($reservation->status == 'Active' || $reservation->status == 'Aktif')
+                                    @if ($reservation->status == 'Aktif')
                                         <span
                                             class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">
                                             {{ $reservation->status }}
                                         </span>
-                                    @elseif($reservation->status == 'Ended')
+                                    @elseif($reservation->status == 'Berakhir')
                                         <span
                                             class="px-2 py-1 font-semibold leading-tight text-gray-700 bg-gray-100 rounded-full dark:text-gray-100 dark:bg-gray-700">
                                             {{ $reservation->status }}
                                         </span>
-                                    @elseif($reservation->status == 'Canceled')
+                                    @elseif($reservation->status == 'Dibatalkan')
                                         <span
                                             class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:text-red-100 dark:bg-red-700">
                                             {{ $reservation->status }}

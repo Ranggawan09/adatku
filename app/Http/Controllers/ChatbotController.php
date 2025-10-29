@@ -3,20 +3,20 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Google\Cloud\Dialogflow\V2\QueryInput;
-use Google\Cloud\Dialogflow\V2\TextInput;
 use Exception;
-use Google\Cloud\Dialogflow\V2\Client\SessionsClient;
 use Illuminate\Support\Facades\Log;
-use Google\Cloud\Dialogflow\V2\DetectIntentRequest;
+use Illuminate\Support\Facades\Http;
+use App\Models\PakaianAdat;
+use App\Models\Reservation;
 
 class ChatbotController extends Controller
 {
     /**
-     * Berkomunikasi dengan Dialogflow dan mengembalikan responsnya.
+     * Berkomunikasi dengan Rasa dan mengembalikan responsnya.
+     * Endpoint ini akan menerima pesan dari frontend dan meneruskannya ke Rasa.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\JsonResponse.
      */
     public function sendMessage(Request $request)
     {
@@ -25,40 +25,35 @@ class ChatbotController extends Controller
         ]);
 
         try {
-            $credentialsPath = config('dialogflow.credentials');
-            if (!file_exists($credentialsPath)) {
-                Log::error('Dialogflow credentials file not found at path: ' . $credentialsPath);
-                return response()->json(['error' => 'Konfigurasi asisten virtual tidak ditemukan.'], 500);
-            }
-
-            $projectId = config('dialogflow.project_id');
-            $sessionId = $request->session()->getId(); // Gunakan ID sesi Laravel untuk keunikan
+            // URL ini menunjuk ke endpoint webhook Rasa, bukan /model/parse lagi.
+            $rasaServerUrl = env('RASA_SERVER_URL', 'http://127.0.0.1:5005');
             $message = $request->input('message');
-            $languageCode = 'id'; // Bahasa Indonesia
+            // Rasa membutuhkan 'sender' untuk melacak sesi percakapan.
+            $senderId = $request->session()->getId();
 
-            $sessionsClient = new SessionsClient([
-                'credentials' => $credentialsPath
+            // Kirim pesan ke Rasa menggunakan endpoint webhook
+            $rasaResponse = Http::timeout(30)->post("$rasaServerUrl/webhooks/rest/webhook", [ // Tambahkan timeout 30 detik
+                'sender' => $senderId,
+                'message' => $message
             ]);
 
-            $sessionName = $sessionsClient->sessionName($projectId, $sessionId);
+            if ($rasaResponse->failed()) {
+                throw new Exception('Gagal terhubung ke server Rasa.');
+            }
 
-            $textInput = new TextInput();
-            $textInput->setText($message);
-            $textInput->setLanguageCode($languageCode);
+            // Rasa akan mengembalikan array balasan. Kita ambil yang pertama.
+            $rasaReplies = $rasaResponse->json();
 
-            $queryInput = new QueryInput();
-            $queryInput->setText($textInput);
+            // Periksa apakah ada balasan yang valid dari Rasa
+            if (empty($rasaReplies) || !isset($rasaReplies[0]['text'])) {
+                throw new Exception('Rasa server returned an empty or invalid response.');
+            }
+            $replyText = $rasaReplies[0]['text'];
 
-            $detectIntentRequest = (new DetectIntentRequest())->setSession($sessionName)->setQueryInput($queryInput);
-            $response = $sessionsClient->detectIntent($detectIntentRequest);
-            $queryResult = $response->getQueryResult();
-            $fulfillmentText = $queryResult->getFulfillmentText();
+            return response()->json(['reply' => $replyText]);
 
-            $sessionsClient->close();
-
-            return response()->json(['reply' => $fulfillmentText]);
         } catch (Exception $e) {
-            Log::error('Dialogflow Error: ' . $e->getMessage());
+            Log::error('Rasa Chatbot Error: ' . $e->getMessage());
             return response()->json(['error' => 'Maaf, terjadi kesalahan saat menghubungi asisten virtual.'], 500);
         }
     }

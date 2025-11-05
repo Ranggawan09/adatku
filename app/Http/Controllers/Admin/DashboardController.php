@@ -19,7 +19,7 @@ class DashboardController extends Controller
     {
         $PakaianAdatCount = PakaianAdat::where('status', 'Tersedia')->count();
         $userCount = User::where('role', 'client')->count();
-        $reservationCount = Reservation::where('status', 'Active')->count();
+        $reservationCount = Reservation::where('status', 'Aktif')->count();
 
         // Data untuk Chart Reservasi 30 Hari Terakhir
         $reservationData = Reservation::select(

@@ -24,7 +24,7 @@
             {{-- Initial bot message --}}
             <div class="flex mb-3">
                 <div class="bg-jawa-200 text-jawa-800 p-3 rounded-lg max-w-xs">
-                    <p>Halo! Ada yang bisa saya bantu? Anda bisa bertanya tentang koleksi, cara sewa, atau lokasi kami.</p>
+                    <p>Halo! Ada yang bisa saya bantu? Anda bisa bertanya tentang seputar sewa pakaian adat atau status sewa.</p>
                 </div>
             </div>
         </div>
@@ -51,11 +51,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
     const chatMessages = document.getElementById('chat-messages');
-    const chatSubmit = document.getElementById('chat-submit');
 
+    // === Tampilkan / sembunyikan jendela chat ===
     chatBubble.addEventListener('click', () => {
-        chatWindow.classList.remove('hidden'); // Tampilkan jendela chat
-        chatBubble.classList.add('hidden');    // Sembunyikan bubble
+        chatWindow.classList.remove('hidden');
+        chatBubble.classList.add('hidden');
     });
 
     closeChat.addEventListener('click', () => {
@@ -63,17 +63,16 @@ document.addEventListener('DOMContentLoaded', function () {
         chatBubble.classList.remove('hidden');
     });
 
+    // === Saat user kirim pesan ===
     chatForm.addEventListener('submit', function (e) {
         e.preventDefault();
         const message = chatInput.value.trim();
         if (!message) return;
 
-        // Display user message
         appendMessage(message, 'user');
         chatInput.value = '';
         showTypingIndicator();
 
-        // Send message to backend
         fetch("{{ route('chatbot.send') }}", {
             method: 'POST',
             headers: {
@@ -84,12 +83,9 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(response => {
             if (!response.ok) {
-                // Jika status HTTP bukan 2xx, coba parse body sebagai JSON untuk mendapatkan pesan error
                 return response.json().then(errorData => {
-                    // Lemparkan error agar bisa ditangkap oleh blok .catch()
                     throw new Error(errorData.error || `Server error: ${response.status}`);
                 }).catch(() => {
-                    // Jika body bukan JSON, lemparkan error umum
                     throw new Error(`Server error: ${response.status}`);
                 });
             }
@@ -97,7 +93,24 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(data => {
             removeTypingIndicator();
-            appendMessage(data.reply || 'Maaf, saya tidak mengerti. Bisa coba lagi?', 'bot');
+            console.log("Respons dari Laravel:", data);
+
+            // ✅ FIX: Rasa kirim array of messages, bukan data.reply
+            if (Array.isArray(data) && data.length > 0) {
+                data.forEach(item => {
+                    if (item.text) {
+                        appendMessage(item.text, 'bot');
+                    } else if (item.image) {
+                        appendMessage(`<img src="${item.image}" class="rounded-lg max-w-xs" />`, 'bot');
+                    } else {
+                        appendMessage('Maaf, saya tidak mengerti. Bisa coba lagi?', 'bot');
+                    }
+                });
+            } else if (data.error) {
+                appendMessage("⚠️ " + data.error, 'bot');
+            } else {
+                appendMessage('Maaf, saya tidak mengerti. Bisa coba lagi?', 'bot');
+            }
         })
         .catch(error => {
             removeTypingIndicator();
@@ -106,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // === Fungsi tampilkan pesan ===
     function appendMessage(text, sender) {
         const messageWrapper = document.createElement('div');
         const messageBubble = document.createElement('div');
@@ -113,8 +127,10 @@ document.addEventListener('DOMContentLoaded', function () {
         messageWrapper.classList.add('flex', 'mb-3');
         messageBubble.classList.add('p-3', 'rounded-lg', 'max-w-xs', 'text-left');
 
-        // Ganti • dengan <br> untuk membuat baris baru, khusus untuk balasan dari bot
-        text = (sender === 'bot') ? text.replace(/•/g, '<br>•') : text;
+        // Ganti • dengan <br> untuk balasan bot multi-baris
+        if (sender === 'bot') {
+            text = text.replace(/•/g, '<br>•');
+        }
 
         messageBubble.innerHTML = `<p>${text}</p>`;
 
@@ -127,9 +143,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         messageWrapper.appendChild(messageBubble);
         chatMessages.appendChild(messageWrapper);
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to bottom
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // === Indikator bot mengetik ===
     function showTypingIndicator() {
         const typingIndicator = document.createElement('div');
         typingIndicator.id = 'typing-indicator';
@@ -145,9 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function removeTypingIndicator() {
         const typingIndicator = document.getElementById('typing-indicator');
-        if (typingIndicator) {
-            typingIndicator.remove();
-        }
+        if (typingIndicator) typingIndicator.remove();
     }
 });
 </script>

@@ -8,16 +8,17 @@ use App\Http\Controllers\ClientReservationController;
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\LoginController;
-use App\Http\Controllers\invoiceController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\SearchController;
 
 
-// ------------------- guest routes --------------------------------------- //
-// Menggunakan HomeController untuk menampilkan halaman utama
+// ------------------- user routes --------------------------------------- //
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/pakaian-adat', [PakaianAdatController::class, 'index'])->name('pakaianAdat');
 Route::get('/pakaianAdat/search', [SearchController::class, 'search'])->name('search');
-
+Route::get('/reservations/{pakaianAdat}', [ClientReservationController::class, 'create'])->name('pakaian-adat.reservation');
+Route::post('/reservations/{pakaianAdat}', [ClientReservationController::class, 'store'])->name('pakaian-adat.reservationStore');
+route::get('invoice/{reservation}', [InvoiceController::class, 'invoice'])->name('invoice');
 Route::get('location', function () {
     return view('location');
 })->name('location');
@@ -40,24 +41,14 @@ function () {
     return view('Terms_Conditions');
 })->name('terms_conditions');
 
+Route::get('/thankyou/{reservation}', function ($reservation_id) {
+    $reservation = \App\Models\Reservation::findOrFail($reservation_id);
+    return view('thankyou', compact('reservation'));
+})->name('thankyou');
+
 // ------------------- chatbot route -------------------------------------- //
 Route::post('/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
 Route::get('/chatbot/cek-status/{transaction_id}', [ChatbotController::class, 'cekStatus']);
-Route::get('/chatbot/cek-ketersediaan', [ChatbotController::class, 'cekKetersediaan']);
-
-// --- RASA ACTION SERVER API ROUTES ---
-// Grup ini sengaja diletakkan di web.php untuk menghindari middleware 'auth:sanctum'
-// yang ada di grup 'api' pada routes/api.php.
-// Middleware 'api' dari Kernel.php tetap akan berlaku (throttling, bindings).
-Route::prefix('api/chatbot')->name('api.chatbot.')->group(function () {
-    Route::get('/cek-ketersediaan', [\App\Http\Controllers\Api\ChatbotApiController::class, 'checkAvailability'])->name('checkAvailability');
-    Route::get('/cek-status/{invoice}', [\App\Http\Controllers\Api\ChatbotApiController::class, 'checkOrderStatus'])->name('checkOrderStatus');
-});
-
-// -------------------------------------------------------------------------//
-
-
-
 
 // ------------------- admin routes --------------------------------------- //
 
@@ -80,30 +71,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 // --------------------------------------------------------------------------//
 
-
-
-
-// ------------------- client routes --------------------------------------- //
-
-Route::get('/reservations/{pakaianAdat}', [ClientReservationController::class, 'create'])->name('pakaian-adat.reservation');
-Route::post('/reservations/{pakaianAdat}', [ClientReservationController::class, 'store'])->name('pakaian-adat.reservationStore');
-
-route::get('invoice/{reservation}', [invoiceController::class, 'invoice'])->name('invoice');
-
-
-//---------------------------------------------------------------------------//
-
 // Rute untuk pembayaran
 Route::get('/payment/{reservation}', [ClientReservationController::class, 'payment'])->name('payment');
 Route::get('/payment/finish/{reservation}', [ClientReservationController::class, 'paymentFinish'])->name('payment.finish');
 Route::post('/midtrans/callback', [MidtransCallbackController::class, 'handle'])->name('midtrans.callback');
 Route::post('/payment/cod/{reservation}', [ClientReservationController::class, 'payAtStore'])->name('payment.cod');
-
-// Route untuk halaman terima kasih
-Route::get('/thankyou/{reservation}', function ($reservation_id) {
-    $reservation = \App\Models\Reservation::findOrFail($reservation_id);
-    return view('thankyou', compact('reservation'));
-})->name('thankyou');
 
 // Auth::routes(); // Menonaktifkan rute login/register untuk user biasa
 

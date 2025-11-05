@@ -76,7 +76,7 @@
                         <tr
                             class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                             <td class="px-4 py-3">
-                                <img loading="lazy" class="h-16 w-24 object-cover rounded-md" src="{{ Storage::url($pakaianAdat->image) }}" alt="Foto {{ $pakaianAdat->nama }}">
+                                <img loading="lazy" class="h-16 w-24 object-cover rounded-md" src="{{ $pakaianAdat->image_url }}" alt="Foto {{ $pakaianAdat->nama }}">
 
                             </td>
                             <th scope="row"

@@ -168,7 +168,7 @@ class PakaianAdatController extends Controller
         $pakaianAdat = PakaianAdat::findOrFail($pakaianAdat->id);
         
         // Cek apakah ada reservasi aktif untuk pakaian adat ini
-        if ($pakaianAdat->reservations()->whereIn('status', ['Pending', 'Confirmed', 'Active'])->exists()) {
+        if ($pakaianAdat->reservations()->whereIn('status', ['Pending', 'Disewa'])->exists()) {
             return redirect()->route('admin.pakaian-adat.index')->with('error', 'Tidak dapat menghapus Pakaian Adat yang memiliki reservasi aktif.');
         }
         

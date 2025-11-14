@@ -3,10 +3,10 @@
     <div class="container mx-auto grid mb-16">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200">
+                <h2 class="text-3xl font-semibold text-gray-700 dark:text-gray-200">
                     Pakaian Adat
                 </h2>
-                <a href="{{ route('admin.pakaian-adat.create') }}" class="bg-pr-400 px-4 py-2 text-white rounded-md shadow-lg hover:bg-pr-600 text-sm font-medium">
+                <a href="{{ route('admin.pakaian-adat.create') }}" class="bg-pr-400 px-4 py-2 text-white rounded-md shadow-lg hover:bg-pr-600 text-base font-medium">
                     Tambah Pakaian Adat
                 </a>
             </div>
@@ -36,7 +36,7 @@
         <div class="w-full overflow-hidden rounded-lg shadow-xs mt-8">
             <div class="w-full overflow-x-auto">
                 <table class="w-full whitespace-no-wrap table-auto">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <thead class="text-sm text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
                         <th scope="col" class="px-6 py-3">
                             Image
@@ -52,9 +52,6 @@
                         </th>
                         <th scope="col" class="px-6 py-3">
                             Asal Daerah
-                        </th>
-                        <th scope="col" class="px-6 py-3">
-                            Warna
                         </th>
                         <th scope="col" class="px-6 py-3">
                             Harga/Hari
@@ -74,49 +71,50 @@
                 <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
                     @foreach ($pakaianAdats as $pakaianAdat)
                         <tr
-                            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-sm">
                             <td class="px-4 py-3">
                                 <img loading="lazy" class="h-16 w-24 object-cover rounded-md" src="{{ $pakaianAdat->image_url }}" alt="Foto {{ $pakaianAdat->nama }}">
 
                             </td>
                             <th scope="row"
-                                class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                class="px-6 py-4 font-semibold text-gray-900 whitespace-nowrap dark:text-white">
                                 {{ $pakaianAdat->nama }}
                             </th>
                             <td class="px-6 py-4">
                                 {{ $pakaianAdat->jenis }}
                             </td>
                             <td class="px-6 py-4">
-                                {{ $pakaianAdat->variants->pluck('size')->join(', ') }}
+                                <div class="flex flex-col">
+                                    @foreach($pakaianAdat->variants as $variant)
+                                        <span>{{ $variant->size }}</span>
+                                    @endforeach
+                                </div>
                             </td>
                             <td class="px-6 py-4">
                                 {{ $pakaianAdat->asal }}
                             </td>
-                            <td class="px-6 py-4">
-                                {{ $pakaianAdat->warna }}
-                            </td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 font-medium">
                                 Rp{{ number_format($pakaianAdat->price_per_day, 0, ',', '.') }}
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 font-semibold">
                                 {{ $pakaianAdat->total_quantity }}
                             </td>
                             
                             <td class="px-6 py-4">
                                 @if ($pakaianAdat->status == 'Tersedia')
-                                    <span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">Tersedia</span>
+                                    <span class="px-2 py-1 text-sm font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">Tersedia</span>
                                 @else
-                                    <span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:text-red-100 dark:bg-red-700">Tidak Tersedia</span>
+                                    <span class="px-2 py-1 text-sm font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:text-red-100 dark:bg-red-700">Tidak Tersedia</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 flex items-center space-x-2">
                                 <a href="{{ route('admin.pakaian-adat.edit', ['pakaianAdat' => $pakaianAdat->id]) }}"
-                                    class="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Edit</a>
+                                    class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Edit</a>
                                 <form action="{{ route('admin.pakaian-adat.destroy', ['pakaianAdat' => $pakaianAdat->id]) }}" method="POST" onsubmit="return confirmDelete(event)">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit"
-                                        class="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Hapus</button>
+                                        class="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">Hapus</button>
                                 </form>
                             </td>
                         </tr>

@@ -18,7 +18,7 @@ Route::get('/pakaian-adat', [PakaianAdatController::class, 'index'])->name('paka
 Route::get('/pakaianAdat/search', [SearchController::class, 'search'])->name('search');
 Route::get('/reservations/{pakaianAdat}', [ClientReservationController::class, 'create'])->name('pakaian-adat.reservation');
 Route::post('/reservations/{pakaianAdat}', [ClientReservationController::class, 'store'])->name('pakaian-adat.reservationStore');
-route::get('invoice/{reservation}', [InvoiceController::class, 'invoice'])->name('invoice');
+Route::get('invoice/{reservation}', [InvoiceController::class, 'show'])->name('invoice');
 Route::get('location', function () {
     return view('location');
 })->name('location');

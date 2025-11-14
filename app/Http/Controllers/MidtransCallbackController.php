@@ -42,14 +42,22 @@ class MidtransCallbackController extends Controller
         }
 
         // Update status pembayaran berdasarkan notifikasi
+        $originalStatus = $reservation->status;
+
         if ($transactionStatus == 'capture' || $transactionStatus == 'settlement') {
-            // 'capture' untuk kartu kredit, 'settlement' untuk metode lain. Pembayaran berhasil.
-            $reservation->payment_status = 'Lunas';
-            $reservation->status = 'Aktif'; // Ubah juga status reservasi menjadi Aktif
-            $reservation->payment_method = $notification->payment_type; // Simpan metode pembayaran
+            // Hanya update jika belum Lunas untuk mencegah trigger observer berulang
+            if ($reservation->payment_status !== 'Lunas') {
+                $reservation->payment_status = 'Lunas';
+                $reservation->status = 'Disewa';
+                $reservation->payment_method = $notification->payment_type;
+            }
         } elseif ($transactionStatus == 'pending') {
             $reservation->payment_status = 'Pending';
+            $reservation->status = 'Pending';
         } elseif ($transactionStatus == 'deny' || $transactionStatus == 'expire' || $transactionStatus == 'cancel') {
+            // Jika status sebelumnya adalah 'Disewa' (misal karena settlement lalu di-cancel),
+            // maka stok akan dikembalikan oleh Observer.
+            // Kita set status pembayaran dan reservasi menjadi 'Canceled'.
             $reservation->payment_status = 'Canceled';
             $reservation->status = 'Canceled'; // Juga batalkan reservasi
         }

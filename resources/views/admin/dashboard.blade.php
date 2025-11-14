@@ -16,10 +16,10 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-600">
+                        <p class="text-base font-medium text-gray-600">
                             Total Pelanggan
                         </p>
-                        <p class="text-2xl font-semibold text-gray-700">
+                        <p class="text-3xl font-semibold text-gray-700">
                             {{ $userCount }}
                         </p>
                     </div>
@@ -35,10 +35,10 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-600">
+                        <p class="text-base font-medium text-gray-600">
                             Total Pakaian Adat
                         </p>
-                        <p class="text-2xl font-semibold text-gray-700">
+                        <p class="text-3xl font-semibold text-gray-700">
                             {{ $PakaianAdatCount }}
                         </p>
                     </div>
@@ -54,10 +54,10 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-sm font-medium text-gray-600">
+                        <p class="text-base font-medium text-gray-600">
                             Reservasi Aktif
                         </p>
-                        <p class="text-2xl font-semibold text-gray-700">
+                        <p class="text-3xl font-semibold text-gray-700">
                             {{ $reservationCount }}
                         </p>
                     </div>
@@ -69,13 +69,13 @@
         <div class="grid gap-6 mb-8 md:grid-cols-1 xl:grid-cols-2">
             <!-- Reservations Chart -->
             <div class="p-4 bg-white rounded-lg shadow-md">
-                <h3 class="mb-4 text-lg font-semibold text-gray-700">Reservasi 30 Hari Terakhir</h3>
+                <h3 class="mb-4 text-xl font-semibold text-gray-700">Reservasi 30 Hari Terakhir</h3>
                 <div id="reservations-chart"></div>
             </div>
 
             <!-- Popular Pakaian Adat Chart -->
             <div class="p-4 bg-white rounded-lg shadow-md">
-                <h3 class="mb-4 text-lg font-semibold text-gray-700">Top 5 Pakaian Adat Terpopuler</h3>
+                <h3 class="mb-4 text-xl font-semibold text-gray-700">Top 5 Pakaian Adat Terpopuler</h3>
                 <div id="popular-pakaian-chart"></div>
             </div>
         </div>

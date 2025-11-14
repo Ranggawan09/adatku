@@ -44,12 +44,14 @@ class ClientReservationController extends Controller
             'full-name' => ['required', 'string', 'max:255'],   
             'phone' => ['required', 'string', 'min:11', 'max:20'],
             'alamat' => ['required', 'string'],
-            'variant_id' => 'required|exists:pakaian_variants,id',
             'reservation_dates' => 'required|string',
+            'variants' => 'required|array|min:1',
+            'variants.*.id' => 'required|exists:pakaian_variants,id',
+            'variants.*.quantity' => 'required|integer|min:1',
+        ], [
+            'variants.required' => 'Anda harus memilih setidaknya satu ukuran dan jumlahnya.'
         ]);
 
-
-        $variant = PakaianVariant::findOrFail($request->variant_id);
         $pakaianAdat = PakaianAdat::findOrFail($pakaianAdat_id);
 
         // Cari pengguna berdasarkan nama DAN nomor telepon.
@@ -68,7 +70,7 @@ class ClientReservationController extends Controller
         );
 
         // Check if the user has more than 2 Aktif reservations
-        $userReservationsCount = Reservation::where('user_id', $user->id)->whereIn('status', ['Pending', 'Aktif'])->count();
+        $userReservationsCount = Reservation::where('user_id', $user->id)->whereIn('status', ['Pending', 'Disewa'])->distinct('order_id')->count();
         if ($userReservationsCount >= 2) {
             return redirect()->back()->with('error', 'Kamu tidak dapat memiliki 2 pesanan aktif 😉.');
         }
@@ -78,66 +80,84 @@ class ClientReservationController extends Controller
         $start = Carbon::parse($reservation_dates[0]);
         $end = Carbon::parse($reservation_dates[1]);
 
-        // Pengecekan stok berdasarkan tanggal
-        $stock = $variant->quantity;
-        $currentDate = $start->copy();
-        while ($currentDate->lte($end)) {
-            // Hitung jumlah reservasi yang ada pada tanggal ini
-            $reservationsCountOnDate = Reservation::where('pakaian_variant_id', $variant->id)
-                ->whereIn('status', ['Pending', 'Aktif'])
-                ->where('start_date', '<=', $currentDate->toDateString())
-                ->where('end_date', '>=', $currentDate->toDateString())
-                ->count();
-            
-            // Jika jumlah reservasi sudah sama atau lebih dari stok, tolak reservasi
-            if ($reservationsCountOnDate >= $stock) {
-                return redirect()->back()
-                    ->with('error', 'Maaf, stok untuk ukuran ' . $variant->size . ' tidak tersedia pada tanggal ' . $currentDate->format('d-m-Y') . '. Silakan pilih tanggal lain.')
-                    ->withInput();
+        $requestedVariants = $request->variants;
+        $reservations = [];
+        $totalPrice = 0;
+        $item_details = [];
+
+        // Loop through each requested variant to check stock and prepare reservation data
+        foreach ($requestedVariants as $variantId => $details) {
+            $variant = PakaianVariant::findOrFail($variantId);
+            $requestedQuantity = (int) $details['quantity'];
+
+            // Check stock for the date range
+            $currentDate = $start->copy();
+            while ($currentDate->lte($end)) {
+                $reservationsCountOnDate = Reservation::where('pakaian_variant_id', $variant->id)
+                    ->whereIn('status', ['Pending', 'Disewa'])
+                    ->where('start_date', '<=', $currentDate->toDateString())
+                    ->where('end_date', '>=', $currentDate->toDateString())
+                    ->sum('quantity');
+
+                if (($reservationsCountOnDate + $requestedQuantity) > $variant->quantity) {
+                    return redirect()->back()
+                        ->with('error', 'Stok untuk ukuran ' . $variant->size . ' tidak cukup pada tanggal ' . $currentDate->format('d-m-Y') . '.')
+                        ->withInput();
+                }
+                $currentDate->addDay();
             }
-            
-            $currentDate->addDay();
+
+            $days = $start->diffInDays($end) ?: 1;
+            $itemTotalPrice = $days * $pakaianAdat->price_per_day * $requestedQuantity;
+            $totalPrice += $itemTotalPrice;
+
+            $reservation = new Reservation([
+                'user_id' => $user->id,
+                'pakaian_adat_id' => $pakaianAdat->id,
+                'pakaian_variant_id' => $variant->id,
+                'quantity' => $requestedQuantity,
+                'start_date' => $start,
+                'end_date' => $end,
+                'days' => $days,
+                'price_per_day' => $pakaianAdat->price_per_day,
+                'total_price' => $itemTotalPrice,
+                'status' => 'Pending',
+                'payment_status' => 'Pending',
+            ]);
+            $reservations[] = $reservation;
+
+            $item_details[] = [
+                'id' => $variant->id,
+                'price' => $pakaianAdat->price_per_day,
+                'quantity' => $days * $requestedQuantity,
+                'name' => $pakaianAdat->nama . ' (' . $variant->size . ')',
+            ];
         }
 
-        $reservation = new Reservation();
-        $reservation->user()->associate($user);
-        $reservation->pakaian_adat_id = $pakaianAdat->id;
-        $reservation->pakaian_variant_id = $variant->id;
-        $reservation->start_date = $start;
-        $reservation->end_date = $end;
-        $reservation->days = $start->diffInDays($end) ?: 1; // Ensure at least 1 day
-        $reservation->price_per_day = $pakaianAdat->price_per_day;
-        $reservation->total_price = $reservation->days * $reservation->price_per_day;
-        $reservation->status = 'Pending';
-        $reservation->payment_status = 'Pending'; 
-        $reservation->save();
-        
-        // Buat order_id unik setelah reservation memiliki ID
-        $order_id = $reservation->id.time();
-        $reservation->order_id = $order_id;
+        // If all stock checks pass, save all reservations
+        $order_id = time(); // Buat satu ID pesanan unik untuk seluruh transaksi
+        $masterReservation = null; // The first reservation will carry the payment details
+
+        foreach ($reservations as $index => $reservation) {
+            $reservation->order_id = $order_id; // Gunakan order_id yang sama untuk semua item
+            $reservation->save();
+            if ($index === 0) {
+                $masterReservation = $reservation;
+            }
+        }
 
         // --- Integrasi Midtrans Dimulai Di Sini ---
 
         // 1. Buat detail transaksi untuk Midtrans
         $transaction_details = [
-            'order_id' => $order_id,
-            'gross_amount' => $reservation->total_price,
-        ];
-
-        // 2. Buat detail item
-        $item_details = [
-            [
-                'id' => $variant->id,
-                'price' => $pakaianAdat->price_per_day,
-                'quantity' => $reservation->days,
-                'name' => $pakaianAdat->nama . ' (' . $variant->size . ')',
-            ],
+            'order_id' => $order_id, // Gunakan ID pesanan yang sudah dibuat
+            'gross_amount' => $totalPrice,
         ];
 
         // 3. Buat detail pelanggan
         $customer_details = [
             'first_name' => $user->name,
-            'email' => $user->email, // Pastikan ada email, atau berikan nilai default
+            'email' => $user->email ?? $user->phone . '@adatku.com', // Fallback email
             'phone' => $user->phone,
             'billing_address' => [
                 'address' => $user->alamat,
@@ -150,7 +170,7 @@ class ClientReservationController extends Controller
             'customer_details' => $customer_details,
             'item_details' => $item_details,
             'callbacks' => [
-                'finish' => route('payment.finish', $reservation->id),
+                'finish' => route('payment.finish', $masterReservation->id), // Redirect to the master reservation's finish page
             ],
         ];
 
@@ -159,11 +179,13 @@ class ClientReservationController extends Controller
             $snapToken = Snap::getSnapToken($transaction);
             
             // 6. Simpan snap_token ke database
-            $reservation->snap_token = $snapToken;
-            $reservation->save();
+            Reservation::whereIn('id', array_map(fn($r) => $r->id, $reservations))
+                ->update(['snap_token' => $snapToken]);
+
+            $masterReservation->refresh(); // Refresh to get the snap_token
 
             // 7. Redirect ke halaman pembayaran
-            return redirect()->route('payment', $reservation->id);
+            return redirect()->route('payment', $masterReservation->id);
 
         } catch (\Exception $e) {
             // Tangani jika ada error dari Midtrans
@@ -175,34 +197,52 @@ class ClientReservationController extends Controller
     {
         // Di sini kita tidak bisa memvalidasi dengan Auth::id() karena user tidak login
         // Namun, karena URL-nya unik dan hanya diketahui setelah reservasi, ini cukup aman untuk alur ini.
+
+        // Ambil semua item reservasi yang terkait dengan snap_token ini
+        $relatedReservations = Reservation::where('snap_token', $reservation->snap_token)
+            ->with(['pakaianAdat', 'variant']) // Eager load untuk menampilkan detail
+            ->get();
+        $totalPrice = $relatedReservations->sum('total_price');
+
         return view('payment', [
             'snapToken' => $reservation->snap_token,
             'reservation' => $reservation,
+            'relatedReservations' => $relatedReservations,
+            'totalPrice' => $totalPrice, // Kirim total harga yang benar ke view
         ]);
     }
 
     public function paymentFinish(Reservation $reservation)
 {
+    // Ambil semua reservasi yang terkait dengan transaksi ini menggunakan snap_token
+    $relatedReservations = Reservation::where('snap_token', $reservation->snap_token)->get();
+    $totalPrice = $relatedReservations->sum('total_price');
+
+    // Gunakan order_id dari reservasi untuk memeriksa status transaksi di Midtrans.
+    $masterOrderId = $reservation->order_id;
     try {
         /** @var \stdClass $status */
-        $status = \Midtrans\Transaction::status($reservation->order_id);
+        $status = \Midtrans\Transaction::status($masterOrderId);
 
         if ($status->transaction_status === 'settlement' || $status->transaction_status === 'capture') {
-            if ($reservation->payment_status !== 'Lunas') {
-                $reservation->payment_status = 'Lunas';
-                $reservation->status = 'Aktif';
-                if (isset($status->payment_type)) {
-                    $reservation->payment_method = $status->payment_type;
+            // Update semua reservasi terkait jika statusnya belum Lunas
+            foreach ($relatedReservations as $res) {
+                if ($res->payment_status !== 'Lunas') {
+                    $res->payment_status = 'Lunas';
+                    $res->status = 'Pending';
+                    if (isset($status->payment_type)) {
+                        $res->payment_method = $status->payment_type;
+                    }
+                    $res->save();
                 }
-                $reservation->save();
             }
         }
 
-        $reservation->refresh();
+        $reservation->refresh(); // Refresh data reservasi utama
 
-        return view('payment_finish', compact('reservation'));
+        return view('payment_finish', compact('reservation', 'relatedReservations', 'totalPrice', 'masterOrderId'));
     } catch (\Exception $e) {
-        return view('payment_finish', compact('reservation'));
+        return view('payment_finish', compact('reservation', 'relatedReservations', 'totalPrice', 'masterOrderId'));
     }
 }
 
@@ -219,5 +259,21 @@ class ClientReservationController extends Controller
         $reservation->save();
 
         return redirect()->route('thankyou', ['reservation' => $reservation->id]);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\Reservation  $reservation
+     * @return \Illuminate\View\View
+     */
+    public function invoice(Reservation $reservation)
+    {
+        // Ambil semua reservasi yang terkait dengan transaksi ini menggunakan snap_token
+        $relatedReservations = Reservation::where('snap_token', $reservation->snap_token)->with(['pakaianAdat', 'variant'])->get();
+        $totalPrice = $relatedReservations->sum('total_price');
+        $masterOrderId = substr($reservation->order_id, 0, 10); // Timestamp memiliki 10 digit
+
+        return view('invoice', compact('reservation', 'relatedReservations', 'totalPrice', 'masterOrderId'));
     }
 }

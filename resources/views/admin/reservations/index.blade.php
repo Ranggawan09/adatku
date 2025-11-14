@@ -2,7 +2,7 @@
 @section('content')
     <div class="container mx-auto grid mb-16 ">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200">
+            <h2 class="text-3xl font-semibold text-gray-700 dark:text-gray-200">
                 Reservasi
             </h2>
             {{-- Search bar --}}
@@ -35,7 +35,7 @@
                 <table class="w-full whitespace-no-wrap table-auto">
                     <thead>
                         <tr
-                            class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                            class="text-base font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
                             <th class="px-4 py-3">Pelanggan</th>
                             <th class="px-4 py-3">Pakaian Adat</th>
                             <th class="px-4 py-3">Ukuran</th>
@@ -48,88 +48,115 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
-                        @forelse ($reservations as $reservation)
+                        @forelse ($reservations as $orderId => $items)
+                            @php
+                                // Ambil item pertama sebagai perwakilan untuk data umum (user, tanggal, status)
+                                $reservation = $items->first();
+                                // Hitung total harga untuk seluruh pesanan
+                                $orderTotalPrice = $items->sum('total_price');
+                            @endphp
                             <tr class="text-gray-700 dark:text-gray-400">
                                 <td class="px-4 py-3">
-                                    <div class="flex items-center text-sm">
+                                    <div class="flex items-center text-base">
                                         <div>
-                                            <p class="font-semibold">{{ $reservation->user->name }}</p>
-                                            <p class="text-xs text-gray-600 dark:text-gray-400">
-                                                {{ $reservation->user->phone }}
+                                            <p class="font-semibold text-base">{{ $reservation->user->name ?? 'N/A' }}</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                                {{ $reservation->user->phone ?? 'N/A' }}
                                             </p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3 text-sm">
-                                    {{ $reservation->pakaianAdat->nama ?? 'N/A' }} {{ $reservation->pakaianAdat->jenis ?? '' }}
+                                <td class="px-4 py-3 text-base">
+                                    {{-- Gabungkan nama pakaian jika berbeda, atau tampilkan yang pertama --}}
+                                    {{ $items->pluck('pakaianAdat.nama')->unique()->join(', ') }}
                                 </td>
-                                <td class="px-4 py-3 text-sm">
-                                    {{ $reservation->variant->size ?? 'N/A' }}
+                                <td class="px-4 py-3 text-base">
+                                    {{-- Gabungkan semua ukuran dan jumlahnya --}}
+                                    @foreach($items as $item)
+                                        <div>{{ $item->variant->size ?? 'N/A' }} (x{{ $item->quantity }})</div>
+                                    @endforeach
                                 </td>
-                                <td class="px-4 py-3 text-sm">
-                                    {{ \Carbon\Carbon::parse($reservation->start_date)->format('d M Y') }} to
-                                    {{ \Carbon\Carbon::parse($reservation->end_date)->format('d M Y') }}
-                                    <p class="text-xs text-gray-500">({{ $reservation->days }} days)</p>
+                                <td class="px-4 py-3 text-base">
+                                    @php
+                                        $startDate = \Carbon\Carbon::parse($reservation->start_date);
+                                        $endDate = \Carbon\Carbon::parse($reservation->end_date);
+
+                                        if ($startDate->isSameYear($endDate)) {
+                                            if ($startDate->isSameMonth($endDate)) {
+                                                $dateString = $startDate->format('d') . ' to ' . $endDate->format('d M Y');
+                                            } else {
+                                                $dateString = $startDate->format('d M') . ' to ' . $endDate->format('d M Y');
+                                            }
+                                        } else {
+                                            $dateString = $startDate->format('d M Y') . ' to ' . $endDate->format('d M Y');
+                                        }
+                                    @endphp 
+                                    {{ $dateString }} 
+                                    <p class="text-sm text-gray-500">({{ $reservation->days }} days)</p>
                                 </td>
-                                <td class="px-4 py-3 text-sm">
-                                    Rp{{ number_format($reservation->total_price, 0, ',', '.') }}
+                                <td class="px-4 py-3 text-base">
+                                    Rp{{ number_format($orderTotalPrice, 0, ',', '.') }}
                                 </td>
-                                <td class="px-4 py-3 text-xs">
+                                <td class="px-4 py-3 text-base">
                                     @if ($reservation->payment_method)
                                         <span
-                                            class="px-2 py-1 font-semibold leading-tight text-gray-700 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-100">
+                                            class="px-3 py-1.5 text-sm font-semibold leading-tight text-gray-700 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-100">
                                             {{ str_replace('_', ' ', $reservation->payment_method) }}
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-xs">
+                                <td class="px-4 py-3 text-base">
                                     @if ($reservation->payment_status == 'Lunas')
                                         <span
-                                            class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">
+                                            class="px-3 py-1.5 text-sm font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">
                                             {{ $reservation->payment_status }}
                                         </span>
                                     @else
                                         <span
-                                            class="px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full dark:bg-yellow-700 dark:text-yellow-100">
+                                            class="px-3 py-1.5 text-sm font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full dark:bg-yellow-700 dark:text-yellow-100">
                                             {{ $reservation->payment_status }}
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-xs">
-                                    @if ($reservation->status == 'Aktif')
+                                <td class="px-4 py-3 text-base">
+                                    @php
+                                        $statusClass = '';
+                                        switch ($reservation->status) {
+                                            case 'Disewa':
+                                                $statusClass = 'text-green-700 bg-green-100 dark:bg-green-700 dark:text-green-100';
+                                                break;
+                                            case 'Selesai':
+                                                $statusClass = 'text-gray-700 bg-gray-100 dark:text-gray-100 dark:bg-gray-700';
+                                                break;
+                                            case 'Dibatalkan':
+                                                $statusClass = 'text-red-700 bg-red-100 dark:text-red-100 dark:bg-red-700';
+                                                break;
+                                            case 'Terlambat':
+                                                $statusClass = 'text-orange-700 bg-orange-100 dark:text-white dark:bg-orange-600';
+                                                break;
+                                            case 'Dibayar':
+                                                $statusClass = 'text-blue-700 bg-blue-100 dark:text-white dark:bg-blue-600';
+                                                break;
+                                            default: // Menunggu Pembayaran
+                                                $statusClass = 'text-yellow-700 bg-yellow-100 dark:bg-yellow-700 dark:text-yellow-100';
+                                                break;
+                                        }
+                                    @endphp
+                                    <span
+                                        class="px-3 py-1.5 text-sm font-semibold leading-tight rounded-full {{ $statusClass }}">
+                                        {{ $reservation->status }}
                                         <span
-                                            class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">
-                                            {{ $reservation->status }}
-                                        </span>
-                                    @elseif($reservation->status == 'Berakhir')
-                                        <span
-                                            class="px-2 py-1 font-semibold leading-tight text-gray-700 bg-gray-100 rounded-full dark:text-gray-100 dark:bg-gray-700">
-                                            {{ $reservation->status }}
-                                        </span>
-                                    @elseif($reservation->status == 'Dibatalkan')
-                                        <span
-                                            class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:text-red-100 dark:bg-red-700">
-                                            {{ $reservation->status }}
-                                        </span>
-                                    @else
-                                        <span
-                                            class="px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full dark:bg-yellow-700 dark:text-yellow-100">
-                                            {{ $reservation->status }}
-                                        </span>
-                                    @endif
+                                    </span>
                                 </td>
-                                <td class="px-4 py-3 text-sm">
+                                <td class="px-4 py-3 text-base">
                                     <div class="flex flex-col space-y-2">
-                                        <a href="{{ route('admin.editPayment', ['reservation' => $reservation->id]) }}"
-                                            class="p-2 text-xs text-white bg-green-500 hover:bg-green-600 font-medium rounded text-center">
+                                        <a href="{{ route('admin.editPayment', ['reservation' => $reservation->id]) }}" class="px-3 py-2 text-sm text-white bg-green-500 hover:bg-green-600 font-medium rounded text-center">
                                             Edit Pembayaran
                                         </a>
-                                        <a href="{{ route('admin.editStatus', ['reservation' => $reservation->id]) }}"
-                                            class="p-2 text-xs text-white bg-blue-500 hover:bg-blue-600 font-medium rounded text-center">
+                                        <a href="{{ route('admin.editStatus', ['reservation' => $reservation->id]) }}" class="px-3 py-2 text-sm text-white bg-blue-500 hover:bg-blue-600 font-medium rounded text-center">
                                             Edit Status
                                         </a>
-                                        <a href="{{ route('invoice', ['reservation' => $reservation->id]) }}"
-                                            class="p-2 text-xs text-white bg-gray-500 hover:bg-gray-400 font-medium rounded text-center" target="_blank">
+                                        <a href="{{ route('invoice', ['reservation' => $reservation->id]) }}" class="px-3 py-2 text-sm text-white bg-gray-500 hover:bg-gray-600 font-medium rounded text-center" target="_blank">
                                             Cetak Invoice
                                         </a>
                                 </td>

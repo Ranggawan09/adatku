@@ -15,7 +15,7 @@
                     <h3 class="text-lg font-semibold text-gray-700 mb-4">Total Reservasi</h3>
                     <dl class="space-y-3">
                         <div class="flex justify-between items-center">
-                            <dt class="text-sm font-medium text-gray-500">Aktif</dt>
+                            <dt class="text-sm font-medium text-gray-500">Disewa</dt>
                             <dd class="text-sm font-semibold text-green-600">{{ $user->reservations->where('status', 'Active')->count() }}</dd>
                         </div>
                         <div class="flex justify-between items-center">

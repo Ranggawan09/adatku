@@ -25,7 +25,7 @@
 
     <div class="flex h-screen bg-gray-200">
         <!-- Sidebar -->
-        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full md:translate-x-0 bg-jawa-500" aria-label="Sidebar">
+        <aside id="sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 bg-jawa-500" aria-label="Sidebar">
             <div class="h-full flex flex-col px-3 py-4 overflow-y-auto">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center ps-9 mb-5">
                     <img loading="lazy" src="/storage/logos/LOGObg.png" class="h-12" alt="Logo" />
@@ -79,13 +79,13 @@
         </aside>
 
         <!-- Main content -->
-        <div class="flex-1 flex flex-col overflow-hidden md:ml-64">
+        <div id="main-content" class="flex-1 flex flex-col overflow-hidden sm:ml-64 transition-all duration-300 ease-in-out">
             <!-- Top bar -->
             <header class="sticky top-0 bg-white shadow-md z-20">
                 <div class="flex justify-between items-center px-4 sm:px-6 py-3">
                     <!-- Hamburger Menu untuk Mobile -->
                     <div class="flex items-center">
-                        <button id="sidebar-toggle" class="md:hidden text-gray-500 focus:outline-none focus:text-gray-700">
+                        <button id="sidebar-toggle" class="text-gray-500 focus:outline-none focus:text-gray-700">
                             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                             </svg>
@@ -148,18 +148,24 @@
         document.addEventListener('DOMContentLoaded', () => {
             const sidebar = document.getElementById('sidebar');
             const sidebarToggle = document.getElementById('sidebar-toggle');
-            const mainContent = document.querySelector('.flex-1.flex.flex-col');
+            const mainContent = document.getElementById('main-content');
 
             sidebarToggle.addEventListener('click', () => {
-                sidebar.classList.toggle('-translate-x-full'); // Toggle class for mobile view
-            });
+                // Toggle sidebar
+                const isHidden = sidebar.classList.toggle('-translate-x-full');
 
-            // Klik di luar sidebar untuk menutupnya di mobile
-            document.addEventListener('click', (event) => {
-                if (!sidebar.contains(event.target) && !sidebarToggle.contains(event.target) && !sidebar.classList.contains('-translate-x-full') && window.innerWidth < 768) {
-                    sidebar.classList.add('-translate-x-full');
+                // Toggle responsive classes for proper hiding on all screen sizes
+                if (isHidden) {
+                    // Saat sidebar disembunyikan
+                    sidebar.classList.remove('sm:translate-x-0');
+                    mainContent.classList.remove('sm:ml-64');
+                } else {
+                    // Saat sidebar ditampilkan
+                    sidebar.classList.add('sm:translate-x-0');
+                    mainContent.classList.add('sm:ml-64');
                 }
             });
+
         });
     </script>
     {{-- ApexCharts --}}

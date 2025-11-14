@@ -2,12 +2,12 @@
 @section('content')
     <div class="container mx-auto grid mb-16 ">
         <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-200">
+            <h2 class="text-3xl font-semibold text-gray-700 dark:text-gray-200">
                 Pelanggan
             </h2>
             {{-- Search bar --}}
             <div class="w-full md:w-1/3">
-                <form action="{{ route('admin.reservations.index') }}" method="GET">
+                <form action="{{ route('admin.users.index') }}" method="GET">
                     <label for="default-search"
                         class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
                     <div class="relative">
@@ -19,10 +19,10 @@
                             </svg>
                         </div>
                         <input type="search" name="search" id="default-search" value="{{ request('search') }}"
-                            class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-pr-500 focus:border-pr-500"
-                            placeholder="Search by Client Name, Email, or Car...">
+                            class="block w-full p-4 pl-10 text-base text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-pr-500 focus:border-pr-500"
+                            placeholder="Cari berdasarkan Nama atau Email...">
                         <button type="submit"
-                            class="text-white absolute right-2.5 bottom-2.5 bg-pr-400 hover:bg-pr-500 focus:ring-4 focus:outline-none focus:ring-pr-300 font-medium rounded-lg text-sm px-4 py-2">Search</button>
+                            class="text-white absolute right-2.5 bottom-2.5 bg-pr-400 hover:bg-pr-500 focus:ring-4 focus:outline-none focus:ring-pr-300 font-medium rounded-lg text-base px-4 py-2">Search</button>
                     </div>
                 </form>
             </div>
@@ -35,7 +35,7 @@
                     <table class="w-full whitespace-no-wrap table-auto">
                     <thead>
                         <tr
-                            class="text-xs font-semibold tracking-wide text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                            class="text-sm font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
                             <th class="text-center px-4 py-3 w-48">Name</th>
                             <th class="text-center px-4 py-3 w-24">No Whatsapp</th>
                             <th class="text-center px-4 py-3 w-24">Tanggal Bergabung</th>
@@ -49,42 +49,42 @@
 
                         @forelse ($clients as $client)
                             <tr class="bg-white hover:bg-gray-50">
-                                <td class="px-4 py-3 text-sm">
-                                    <p>
+                                <td class="px-4 py-3 text-base text-center">
+                                    <p class="font-semibold">
                                         {{ $client->name }} 
                                     </p>
                                 </td>
-                                <td class="px-4 py-3 text-sm">
+                                <td class="px-4 py-3 text-base text-center">
                                     <p>
                                         {{ $client->phone }}
                                     </p>
                                 </td>
-                                <td class="px-4 py-3 text-sm w-32">
+                                <td class="px-4 py-3 text-base w-32 text-center">
                                     <p>
                                         {{ Carbon\Carbon::parse($client->created_at)->format('Y-m-d') }}
                                     </p>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-center">
+                                <td class="px-4 py-3 text-base text-center">
                                     @if ($client->reservations->count() > 0)
                                         <p>
-                                            <span class=" font-bold text-">{{ $client->reservations->count() }} </span>
-                                             reservation
+                                            <span class="font-bold">{{ $client->reservations->count() }}</span>
+                                             Reservasi
                                         </p>
                                     @else
-                                        no active reservations!!!
+                                        <span class="text-gray-500">Belum ada reservasi</span>
                                     @endif
                                 </td>
 
-                                <td class="px-4 py-3 text-sm w-32">
+                                <td class="px-4 py-3 text-base w-32 text-center">
                                     <a href="{{ route('admin.users.show', ['user' => $client->id]) }}"
-                                       class="inline-block bg-blue-500 text-white px-4 py-2 text-sm font-semibold rounded-md hover:bg-blue-600 transition-colors duration-200">
-                                            Details
+                                       class="inline-block bg-blue-500 text-white px-4 py-2 text-base font-semibold rounded-md hover:bg-blue-600 transition-colors duration-200">
+                                            Detail
                                     </a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-10 px-4 text-gray-500">
+                                <td colspan="5" class="text-center py-16 px-4 text-gray-500">
                                     <p class="text-lg">No users found.</p>
                                     @if(request('search'))
                                         <p class="text-sm mt-2">Try adjusting your search query.</p>

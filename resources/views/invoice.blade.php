@@ -100,11 +100,16 @@
 
 <body>
     <div class="receipt-container">
+        <div class="header" style="margin-top: 15px;">
+            <img src="/storage/logos/LOGObg.png" alt="Logo" style="width: 80px; margin: 0 auto;">
+        </div>
+
         <div class="header">
             <h1>Griya Paes Salsabila</h1>
             <p>Jl. Dukuh, Desa Dukuhklopo, Jombang</p>
             <p>081231180775</p>
         </div>
+
 
         <div class="line-separator"></div>
 
@@ -124,17 +129,17 @@
         <div class="line-separator"></div>
 
         <div class="item-details">
-            <h4>{{ $reservation->pakaianAdat->nama }}</h4>
-            <div class="details-row">
-                <span>Harga/hari:</span>
-                <span>Rp{{ number_format($reservation->price_per_day, 0, ',', '.') }}</span>
-            </div>
-            <div class="details-row">
-                <span>Durasi:</span>
-                <span>{{ $reservation->days }} hari</span>
-            </div>
-            <p style="font-size: 8pt; margin-top: 3px;">
-                ({{ \Carbon\Carbon::parse($reservation->start_date)->format('d/m') }} - {{ \Carbon\Carbon::parse($reservation->end_date)->format('d/m/Y') }})
+            @foreach($relatedReservations as $item)
+                <div style="margin-bottom: 8px;">
+                    <h4>{{ $item->pakaianAdat->nama }}</h4>
+                    <div class="details-row">
+                        <span>Ukuran: {{ $item->variant->size }}</span>
+                        <span>x{{ $item->quantity }}</span>
+                    </div>
+                </div>
+            @endforeach
+            <p style="font-size: 8pt; margin-top: 5px;">
+                Durasi: {{ $reservation->days }} hari ({{ \Carbon\Carbon::parse($reservation->start_date)->format('d/m') }} - {{ \Carbon\Carbon::parse($reservation->end_date)->format('d/m/Y') }})
             </p>
         </div>
 
@@ -142,13 +147,33 @@
 
         <div class="totals-section">
             <div class="details-row">
-                <span>Subtotal:</span>
-                <span>Rp{{ number_format($reservation->total_price, 0, ',', '.') }}</span>
+                <span>Subtotal ({{ $relatedReservations->sum('quantity') }} item)</span>
+                <span>Rp{{ number_format($totalPrice, 0, ',', '.') }}</span>
             </div>
-            <div class="details-row total-row">
-                <span>TOTAL:</span>
-                <span>Rp{{ number_format($reservation->total_price, 0, ',', '.') }}</span>
-            </div>
+
+            @if($reservation->status === 'Terlambat' && $reservation->late_fee > 0)
+                @php
+                    $lateDays = $reservation->late_fee / 50000;
+                @endphp
+                <div class="details-row">
+                    <span>Pembayaran Awal</span>
+                    <span>(Lunas)</span>
+                </div>
+                <div class="line-separator"></div>
+                <div class="details-row">
+                    <span>Denda ({{ $lateDays }} hari)</span>
+                    <span>Rp{{ number_format($reservation->late_fee, 0, ',', '.') }}</span>
+                </div>
+                <div class="details-row total-row">
+                    <span>KURANG PEMBAYARAN:</span>
+                    <span>Rp{{ number_format($reservation->late_fee, 0, ',', '.') }}</span>
+                </div>
+            @else
+                <div class="details-row total-row">
+                    <span>TOTAL:</span>
+                    <span>Rp{{ number_format($totalPrice, 0, ',', '.') }}</span>
+                </div>
+            @endif
             <div class="details-row" style="margin-top: 5px;">
                 <span>Status Pembayaran:</span>
                 <span>{{ $reservation->payment_status }}</span>

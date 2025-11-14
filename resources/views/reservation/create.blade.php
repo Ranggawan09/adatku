@@ -1,10 +1,10 @@
 @extends('layouts.myapp')
 @section('content')
-        <div class="container px-4 py-4">
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row md:justify-center">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col md:flex-row">
             {{-- -------------------------------------------- right (now left) -------------------------------------------- --}}
-                <div class="md:w-5/12 lg:w-4/12 flex flex-col justify-start items-center p-6 md:p-8 md:border-r md:border-gray-200">
-                <div class="relative w-full sm:w-3/4 md:w-full h-72 overflow-hidden rounded-xl">
+                <div class="md:w-4/12 flex flex-col justify-start items-center p-6 md:p-8 md:border-r md:border-gray-200">
+                <div class="relative w-full h-96 overflow-hidden rounded-xl">
                     <img loading="lazy" class="h-full w-full object-cover" src="{{ Storage::url($pakaianAdat->image) }}" alt="product image" />
                     @if ($pakaianAdat->reduce > 0)
                         <span class="absolute top-0 left-0 m-2 rounded-full bg-pr-400 px-2.5 py-1 text-center text-sm font-medium text-white">
@@ -25,7 +25,7 @@
             </div>
 
             {{-- -------------------------------------------- left -------------------------------------------- --}}
-                <div class="md:w-7/12 lg:w-6/12 p-6 md:p-8 md:pl-12">
+                <div class="md:w-8/12 p-6 md:p-8 md:pl-12">
 
                 <h2 class="font-pakaianAdat font-bold text-3xl md:text-5xl text-gray-800">
                     {{ $pakaianAdat->nama }}
@@ -56,23 +56,27 @@
                         @csrf
 
                         <!-- Size Selection Badges -->
-                        <div class="mb-8">
-                            <label class="block text-sm font-medium leading-6 text-gray-900 mb-2">Pilih Ukuran</label>
-                            <div id="size-selector" class="flex flex-wrap gap-3">
+                        <div class="mb-12">
+                            <label class="block text-sm font-medium leading-6 text-gray-900 mb-2">Pilih Ukuran & Jumlah</label>
+                            <div id="size-selector" class="space-y-3">
                                 @forelse ($pakaianAdat->variants as $variant)
-                                    <button type="button" data-variant-id="{{ $variant->id }}"
-                                        class="size-badge h-12 w-12 flex items-center justify-center rounded-full border-2 border-gray-300 text-gray-700 font-semibold transition-colors duration-200 hover:border-pr-400 hover:text-pr-400">
-                                        {{ $variant->size }}
-                                    </button>
+                                    <div class="variant-item flex items-center gap-4 p-3 border-2 rounded-lg transition-colors duration-200 has-[:checked]:border-pr-400 has-[:checked]:bg-pr-50">
+                                        <input type="checkbox" id="variant-{{ $variant->id }}" name="variants[{{ $variant->id }}][id]" value="{{ $variant->id }}" class="variant-checkbox h-5 w-5 rounded border-gray-300 text-pr-400 focus:ring-pr-400 cursor-pointer">
+                                        <label for="variant-{{ $variant->id }}" class="flex-1 cursor-pointer">
+                                            <span class="block font-semibold text-gray-800">Ukuran: {{ $variant->size }}</span>
+                                            <span class="block text-xs text-gray-500">Stok tersedia: {{ $variant->quantity }}</span>
+                                        </label>
+                                        <input type="number" name="variants[{{ $variant->id }}][quantity]" min="1" max="{{ $variant->quantity }}" placeholder="Jumlah" class="quantity-input block w-24 rounded-md border-gray-300 shadow-sm focus:border-pr-400 focus:ring-pr-400 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed" disabled>
+                                    </div>
                                 @empty
                                     <p class="text-gray-500">Tidak ada ukuran yang tersedia saat ini.</p>
                                 @endforelse
                             </div>
-                            <input type="hidden" name="variant_id" id="variant_id" value="{{ old('variant_id') }}">
-                            @error('variant_id')
-                                <span class="text-xs text-red-500 mt-2 block">Pilih salah satu ukuran.</span>
+                            @error('variants')
+                                <span class="text-xs text-red-500 mt-2 block">{{ $message }}</span>
                             @enderror
                         </div>
+
 
                         <div class="grid grid-cols-1 gap-x-6 gap-y-8">
                             <!-- Name and Phone on one line -->
@@ -162,60 +166,92 @@
 
     <script>
         $(document).ready(function() {
-            // Size selector logic
-            const sizeSelector = document.getElementById('size-selector');
-            const variantInput = document.getElementById('variant_id');
-            const sizeBadges = document.querySelectorAll('.size-badge');
+            // Size and quantity logic
+            $('.variant-checkbox').on('change', function() {
+                const quantityInput = $(this).closest('.variant-item').find('.quantity-input');
 
-            sizeSelector.addEventListener('click', function(e) {
-                if (e.target.classList.contains('size-badge')) {
-                    const selectedId = e.target.getAttribute('data-variant-id');
-                    variantInput.value = selectedId;
-
-                    // Update styles
-                    sizeBadges.forEach(badge => {
-                        badge.classList.remove('bg-pr-400', 'text-white', 'border-pr-400');
-                        badge.classList.add('bg-white', 'text-gray-700', 'border-gray-300');
-                    });
-                    e.target.classList.add('bg-pr-400', 'text-white', 'border-pr-400');
-                    e.target.classList.remove('bg-white', 'text-gray-700', 'border-gray-300');
+                if (this.checked) {
+                    quantityInput.prop('disabled', false).val(1).focus();
+                } else {
+                    quantityInput.prop('disabled', true).val('');
                 }
+                updatePrice();
+            });
+
+            // Listen for changes on any quantity input
+            $('#size-selector').on('input', '.quantity-input', function() {
+                // Prevent entering a value greater than max stock
+                const max = parseInt($(this).attr('max'));
+                if (parseInt($(this).val()) > max) $(this).val(max);
+                updatePrice();
             });
 
             // Flatpickr and price calculation logic
-            var flatpickrElement = document.getElementById('laravel-flatpickr');
+            const flatpickrElement = document.getElementById('laravel-flatpickr');
+            let flatpickrInstance;
             if (flatpickrElement && flatpickrElement._flatpickr) {
-                flatpickrElement._flatpickr.config.onChange.push(function(selectedDates, dateStr, instance) {
+                flatpickrInstance = flatpickrElement._flatpickr;
+                flatpickrInstance.config.onChange.push(function(selectedDates, dateStr, instance) {
                     if (selectedDates.length === 2) {
-                        var startDate = selectedDates[0];
-                        var endDate = selectedDates[1];
+                        updatePrice();
+                        const startDate = selectedDates[0];
+                        const endDate = selectedDates[1];
+                        const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) || 1;
 
-                        if (startDate && endDate && startDate <= endDate) {
-                            var duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-                            if (duration === 0) {
-                                duration = 1; // Minimum 1 day rental
-                            }
-                            var pricePerDay = {{ $pakaianAdat->price_per_day }};
-                            var totalPrice = duration * pricePerDay;
-                            // Format to Indonesian Rupiah
-                            var formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalPrice);
-                            $('#duration span').text(duration + ' hari');
-                            $('#total-price span').text(formattedPrice);
-                        } else {
-                            $('#duration span').text('- hari');
-                            $('#total-price span').text('Rp -');
+                        if (duration > 7) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Batas Maksimal Sewa',
+                                text: 'Anda hanya dapat menyewa maksimal selama 7 hari.',
+                            });
                         }
-                    } else {
-                        $('#duration span').text('- hari');
-                        $('#total-price span').text('Rp -');
                     }
                 });
             }
 
-            // Mobile submit button
-            document.getElementById("mobile_submit_button").addEventListener("click", function() {
-                document.getElementById("reservation_form").submit();
-            });
+            function updatePrice() {
+                const selectedDates = flatpickrInstance ? flatpickrInstance.selectedDates : [];
+                if (selectedDates.length < 2) {
+                    $('#duration span').text('- hari');
+                    $('#total-price span').text('Rp -');
+                    return;
+                }
+
+                const startDate = selectedDates[0];
+                const endDate = selectedDates[1];
+                let duration = 0;
+                let totalItemsPrice = 0;
+
+                if (startDate && endDate && startDate <= endDate) {
+                    duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) || 1;
+                }
+
+                // Disable submit button if duration is more than 7 days
+                if (duration > 7) {
+                    $('#desktop_submit_button').prop('disabled', true).addClass('bg-slate-400 hover:bg-slate-400 cursor-not-allowed').removeClass('bg-slate-900 hover:bg-pr-500');
+                } else {
+                    $('#desktop_submit_button').prop('disabled', false).removeClass('bg-slate-400 hover:bg-slate-400 cursor-not-allowed').addClass('bg-slate-900 hover:bg-pr-500');
+                }
+
+                $('.variant-checkbox:checked').each(function() {
+                    const quantityInput = $(this).closest('.variant-item').find('.quantity-input');
+                    const quantity = parseInt(quantityInput.val()) || 0;
+                    const pricePerDay = {{ $pakaianAdat->price_per_day }};
+                    totalItemsPrice += quantity * pricePerDay;
+                });
+
+                const finalTotalPrice = totalItemsPrice * duration;
+
+                if (finalTotalPrice > 0) {
+                    const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(finalTotalPrice);
+                    $('#duration span').text(duration + ' hari');
+                    $('#total-price span').text(formattedPrice);
+                } else {
+                    $('#duration span').text('- hari');
+                    $('#total-price span').text('Rp -');
+                }
+            }
+
         });
     </script>
 

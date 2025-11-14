@@ -7,10 +7,20 @@ use App\Models\Reservation;
 
 class InvoiceController extends Controller
 {
-    public function invoice($reservation_id)
+    /**
+     * @param Reservation $reservation
+     * @return \Illuminate\View\View
+     */
+    public function show(Reservation $reservation)
     {
-        $reservation = Reservation::find($reservation_id);
+        // Ambil semua item reservasi yang terkait dengan order_id ini.
+        $relatedReservations = Reservation::where('order_id', $reservation->order_id)
+            ->with(['pakaianAdat', 'variant'])
+            ->get();
 
-        return view('invoice', compact('reservation'));
+        // Hitung total harga dari semua item yang terkait.
+        $totalPrice = $relatedReservations->sum('total_price');
+
+        return view('invoice', compact('reservation', 'relatedReservations', 'totalPrice'));
     }
 }

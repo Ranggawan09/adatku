@@ -34,14 +34,16 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
-                            <div class="flex items-center justify-center rating">
+                            <div class="flex items-center justify-center star-rating-container">
                                 @for ($i = 5; $i >= 1; $i--)
-                                <input type="radio" id="star{{$i}}" name="rating" value="{{$i}}" class="hidden" {{ old('rating', 0) == $i ? 'checked' : '' }} required />
-                                <label for="star{{$i}}" class="cursor-pointer">
-                                    <svg class="w-8 h-8 text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                                    </svg>
-                                </label>
+                                <div class="star-wrapper">
+                                    <input type="radio" id="star{{$i}}" name="rating" value="{{$i}}" {{ old('rating', 0) == $i ? 'checked' : '' }} required />
+                                    <label for="star{{$i}}">
+                                        <svg class="star-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                        </svg>
+                                    </label>
+                                </div>
                                 @endfor
                             </div>
                         </div>
@@ -63,4 +65,51 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Inline CSS untuk memastikan style ter-apply */
+.star-rating-container {
+    direction: rtl;
+    display: inline-flex;
+    gap: 4px;
+}
+
+.star-wrapper {
+    display: inline-block;
+}
+
+.star-wrapper input[type="radio"] {
+    display: none;
+}
+
+.star-wrapper label {
+    cursor: pointer;
+    display: block;
+}
+
+.star-icon {
+    width: 32px;
+    height: 32px;
+    color: #D1D5DB;
+    transition: color 0.2s ease;
+}
+
+/* Hover effect */
+.star-wrapper:hover .star-icon,
+.star-wrapper:hover ~ .star-wrapper .star-icon {
+    color: #FBBF24 !important;
+}
+
+/* Checked state */
+.star-wrapper input[type="radio"]:checked ~ label .star-icon,
+.star-wrapper input[type="radio"]:checked ~ .star-wrapper label .star-icon {
+    color: #FBBF24 !important;
+}
+
+/* Alternative checked state using parent container */
+.star-wrapper:has(input:checked) .star-icon,
+.star-wrapper:has(input:checked) ~ .star-wrapper .star-icon {
+    color: #FBBF24 !important;
+}
+</style>
 @endsection

@@ -72,17 +72,24 @@ class ReservationController extends Controller
 
     public function updateStatus(Reservation $reservation, Request $request)
     {
-        $request->validate(['status' => 'required|in:Disewa,Selesai,Dibatalkan,Dibayar,Menunggu Pembayaran']);
+        $request->validate(['status' => 'required|string']);
 
         // Update status for all items in the same order
         $newStatus = $request->status;
-        Reservation::where('order_id', $reservation->order_id)->update(['status' => $newStatus]);
+        $orderId = $reservation->order_id;
 
-        // If the status is 'Selesai' or 'Dibatalkan', we can consider updating stock logic here if needed.
-        // For now, this logic is simplified as stock is checked during reservation creation.
+        // Update status reservasi
+        Reservation::where('order_id', $orderId)->update(['status' => $newStatus]);
+
+        // Jika status diubah menjadi 'Dibayar', perbarui juga status pembayaran.
+        // Ini akan memastikan konsistensi data.
+        if ($newStatus === 'Dibayar') {
+            Reservation::where('order_id', $orderId)->update(['payment_status' => 'paid']);
+        }
+
+        // Jika status 'Selesai' atau 'Dibatalkan', stok akan dikembalikan.
         if ($newStatus === 'Selesai' || $newStatus === 'Dibatalkan') {
-            // Logic to release stock can be added here if necessary.
-            // For example, iterating through items and updating variant quantities.
+            // Anda dapat menambahkan logika untuk mengembalikan stok varian di sini jika diperlukan.
         }
 
         return redirect()->route('admin.reservations.index')->with('success', 'Reservation status updated successfully.');

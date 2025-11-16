@@ -46,4 +46,9 @@ class Reservation extends Model
         return $this->belongsTo(PakaianVariant::class, 'pakaian_variant_id');
         
     }
+    public function testimonial()
+    {
+    return $this->hasOne(Testimonial::class);
+    }
+
 }

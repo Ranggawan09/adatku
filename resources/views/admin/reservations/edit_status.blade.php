@@ -27,7 +27,7 @@
                             name="status" id="status">
                             <option value="Disewa">Disewa</option>
                             <option value="Pending">Pending</option>
-                            <option value="Berakhir">Berakhir</option>
+                            <option value="Selesai">Selesai</option>
                             <option value="Dibatalkan">Batal</option>
                         </select>
                     </div>

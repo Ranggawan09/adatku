@@ -1,3 +1,32 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom styles for star rating */
+.rating {
+  direction: rtl; /* This reverses the order of the stars */
+  display: inline-flex;
+}
+
+/* Default star color */
+.rating label svg {
+  @apply text-gray-300;
+  transition: color 0.2s ease;
+}
+
+/* Hover effect - highlight hovered star and all stars after it (which appear before due to RTL) */
+.rating label:hover svg,
+.rating label:hover ~ label svg {
+  @apply text-yellow-400;
+}
+
+/* Checked state - highlight checked star and all stars after it */
+.rating input[type="radio"]:checked ~ label svg {
+  @apply text-yellow-400;
+}
+
+/* Keep stars highlighted when hovering over already selected rating */
+.rating:not(:hover) input[type="radio"]:checked ~ label svg {
+  @apply text-yellow-400;
+}

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MidtransCallbackController;
+use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\ChatbotController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PakaianAdatController;
@@ -45,6 +46,11 @@ Route::get('/thankyou/{reservation}', function ($reservation_id) {
     $reservation = \App\Models\Reservation::findOrFail($reservation_id);
     return view('thankyou', compact('reservation'));
 })->name('thankyou');
+
+// ------------------- testimonial routes --------------------------------- //
+Route::get('/testimonials', [TestimonialController::class, 'index'])->name('testimonials.index');
+Route::get('/testimonials/create', [TestimonialController::class, 'create'])->name('testimonials.create');
+Route::post('/testimonials', [TestimonialController::class, 'store'])->name('testimonials.store');
 
 // ------------------- chatbot route -------------------------------------- //
 Route::post('/chatbot', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');

@@ -68,6 +68,12 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{{ route('testimonials.index') }}" class="relative block py-2 pr-4 pl-3 text-gray-700 group">
+                                <span>Testimoni</span>
+                                <span class="absolute bottom-0 left-0 w-full h-0.5 bg-jawa-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-in-out"></span>
+                            </a>
+                        </li>
+                        <li>
                             <a href="/location" class="relative block py-2 pr-4 pl-3 text-gray-700 group">
                                 <span>Lokasi</span>
                                 <span class="absolute bottom-0 left-0 w-full h-0.5 bg-jawa-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-in-out"></span>

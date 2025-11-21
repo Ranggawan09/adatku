@@ -23,6 +23,7 @@ class Reservation extends Model
         'late_fee',
         'status',
         'payment_status',
+        'payment_method',
         'snap_token',
     ];
 

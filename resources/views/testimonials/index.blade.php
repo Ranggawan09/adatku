@@ -33,9 +33,9 @@
                             </div>
                             <div class="ml-4">
                                 <h3 class="font-bold text-gray-900">{{ $testimonial->reservation->user->name ?? 'Pengguna Dihapus' }}</h3>
-                                <div class="text-yellow-400 flex items-center">
+                                <div class="flex items-center gap-1">
                                     @for ($i = 1; $i <= 5; $i++)
-                                        <svg class="w-5 h-5 fill-current {{ $i <= $testimonial->rating ? 'text-yellow-400' : 'text-gray-300' }}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                                        <span class="text-2xl {{ $i <= $testimonial->rating ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
                                     @endfor
                                 </div>
                             </div>

@@ -150,9 +150,6 @@
                                 </td>
                                 <td class="px-4 py-3 text-base">
                                     <div class="flex flex-col space-y-2">
-                                        <a href="{{ route('admin.editPayment', ['reservation' => $reservation->id]) }}" class="px-3 py-2 text-sm text-white bg-green-500 hover:bg-green-600 font-medium rounded text-center">
-                                            Edit Pembayaran
-                                        </a>
                                         <a href="{{ route('admin.editStatus', ['reservation' => $reservation->id]) }}" class="px-3 py-2 text-sm text-white bg-blue-500 hover:bg-blue-600 font-medium rounded text-center">
                                             Edit Status
                                         </a>

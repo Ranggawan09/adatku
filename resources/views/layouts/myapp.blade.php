@@ -80,6 +80,12 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{{ route('bantuan') }}" class="relative block py-2 pr-4 pl-3 text-gray-700 group">
+                                <span>Bantuan</span>
+                                <span class="absolute bottom-0 left-0 w-full h-0.5 bg-jawa-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-in-out"></span>
+                            </a>
+                        </li>
+                        <li>
                             <a href="/contact_us" class="relative block py-2 pr-4 pl-3 text-gray-700 group">
                                 <span>Hubungi Kami</span>
                                 <span class="absolute bottom-0 left-0 w-full h-0.5 bg-jawa-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-in-out"></span>

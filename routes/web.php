@@ -24,6 +24,10 @@ Route::get('location', function () {
     return view('location');
 })->name('location');
 
+Route::get('bantuan', function () {
+    return view('bantuan');
+})->name('bantuan');
+
 Route::get('contact_us', function () {
     return view('contact_us');
 })->name('contact_us');
@@ -66,9 +70,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('reservations', Admin\ReservationController::class)->except(['create', 'store', 'edit', 'update', 'destroy']);
     Route::resource('users', Admin\UsersController::class)->only(['index', 'show']);
 
-    Route::get('/updatePayment/{reservation}', [Admin\ReservationController::class, 'editPayment'])->name('editPayment');
-    Route::put('/updatePayment/{reservation}', [Admin\ReservationController::class, 'updatePayment'])->name('updatePayment');
-
     Route::get('/updateReservation/{reservation}', [Admin\ReservationController::class, 'editStatus'])->name('editStatus');
     Route::put('/updateReservation/{reservation}', [Admin\ReservationController::class, 'updateStatus'])->name('updateStatus');
     Route::get('/settings', [Admin\SettingsController::class, 'edit'])->name('settings.edit');
@@ -77,13 +78,18 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
 // --------------------------------------------------------------------------//
 
-// Rute untuk pembayaran
-Route::get('/payment/{reservation}', [ClientReservationController::class, 'payment'])->name('payment');
-Route::get('/payment/finish/{reservation}', [ClientReservationController::class, 'paymentFinish'])->name('payment.finish');
-Route::post('/midtrans/callback', [MidtransCallbackController::class, 'handle'])->name('midtrans.callback');
-Route::post('/payment/cod/{reservation}', [ClientReservationController::class, 'payAtStore'])->name('payment.cod');
+// Rute untuk alur pembayaran baru
+// Halaman untuk menampilkan Midtrans Snap
+Route::get('/payment', [ClientReservationController::class, 'showPaymentPage'])->name('payment.show');
 
-// Auth::routes(); // Menonaktifkan rute login/register untuk user biasa
+// Redirect setelah pengguna menyelesaikan/menutup popup Midtrans
+Route::get('/payment/finish/redirect', [ClientReservationController::class, 'paymentFinishRedirect'])->name('payment.finish.redirect');
+
+// Halaman hasil akhir pembayaran (sukses, pending, gagal)
+Route::get('/payment/finish/{order_id}', [ClientReservationController::class, 'paymentFinish'])->name('payment.finish');
+
+// Notifikasi dari server Midtrans (Webhook)
+Route::post('/midtrans/notification', [ClientReservationController::class, 'notificationHandler'])->name('midtrans.notification');
 
 Route::get('/admin', function() {
     return redirect()->route('admin.dashboard');

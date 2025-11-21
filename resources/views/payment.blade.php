@@ -62,6 +62,7 @@
                         Bayar Sekarang
                     </button>
                 </div>
+
             </div>
         </div>
     </div>
@@ -72,14 +73,18 @@
             // Panggil snap.pay() dengan snap token dari controller
             window.snap.pay('{{ $snapToken }}', {
                 onSuccess: function(result) {
-                    /* Anda dapat menangani sukses di sini, misalnya redirect */
+                    /* Tangani sukses, ambil payment_type dari hasil dan kirim ke server */
                     console.log(result);
-                    window.location.href = '{{ route('payment.finish', $reservation->id) }}'
+                    const paymentType = result.payment_type;
+                    const orderId = result.order_id;
+                    // Bangun URL dengan parameter
+                    const redirectUrl = `{{ route('payment.finish.redirect') }}?order_id=${orderId}&status=${result.transaction_status}&type=${paymentType}`;
+                    window.location.href = redirectUrl;
                 },
                 onPending: function(result) {
-                    /* Pelanggan belum menyelesaikan pembayaran */
+                    /* Sesuai permintaan, pending dianggap gagal. Redirect ke handler untuk membatalkan. */
                     console.log(result);
-                    window.location.href = '{{ route('payment.finish', $reservation->id) }}'
+                    window.location.href = '{{ route('payment.finish.redirect') }}';
                 },
                 onError: function(result) {
                     /* Terjadi kesalahan */

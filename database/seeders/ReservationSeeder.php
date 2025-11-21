@@ -35,8 +35,8 @@ class ReservationSeeder extends Seeder
             $days = $start->diffInDays($end) + 1;
             
             // Tentukan status sekali untuk setiap pesanan agar konsisten.
-            $status = ['Disewa', 'Selesai', 'Dibatalkan', 'Dibayar', 'Menunggu Pembayaran'][array_rand(['Disewa', 'Selesai', 'Dibatalkan', 'Dibayar', 'Menunggu Pembayaran'])];
-            $paymentStatus = ($status === 'Dibayar' || $status === 'Disewa' || $status === 'Selesai') ? 'Lunas' : 'Pending';
+            $status = ['Disewa', 'Selesai', 'Batal', 'Pending'][array_rand(['Disewa', 'Selesai', 'Batal', 'Pending'])];
+            $paymentStatus = ($status === 'Pending' ||$status === 'Disewa' || $status === 'Selesai') ? 'Lunas' : 'Pending';
             
             for ($j = 0; $j < $itemsInOrder; $j++) {
                 $pakaianAdatId = $pakaianAdatIds[array_rand($pakaianAdatIds)];

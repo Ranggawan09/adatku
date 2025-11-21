@@ -34,16 +34,12 @@
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
-                            <div class="flex items-center justify-center star-rating-container">
+                            <div class="flex items-center justify-center gap-1 star-rating-container">
                                 @for ($i = 5; $i >= 1; $i--)
-                                <div class="star-wrapper">
-                                    <input type="radio" id="star{{$i}}" name="rating" value="{{$i}}" {{ old('rating', 0) == $i ? 'checked' : '' }} required />
-                                    <label for="star{{$i}}">
-                                        <svg class="star-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                                        </svg>
-                                    </label>
-                                </div>
+                                <label class="star-label cursor-pointer">
+                                    <input type="radio" name="rating" value="{{$i}}" {{ old('rating', 0) == $i ? 'checked' : '' }} required class="hidden star-input" />
+                                    <span class="star-char text-4xl">★</span>
+                                </label>
                                 @endfor
                             </div>
                         </div>
@@ -67,49 +63,78 @@
 </div>
 
 <style>
-/* Inline CSS untuk memastikan style ter-apply */
 .star-rating-container {
     direction: rtl;
     display: inline-flex;
-    gap: 4px;
 }
 
-.star-wrapper {
+.star-label {
     display: inline-block;
+    transition: transform 0.2s ease;
 }
 
-.star-wrapper input[type="radio"] {
-    display: none;
+.star-label:hover {
+    transform: scale(1.1);
 }
 
-.star-wrapper label {
-    cursor: pointer;
-    display: block;
-}
-
-.star-icon {
-    width: 32px;
-    height: 32px;
+.star-char {
     color: #D1D5DB;
     transition: color 0.2s ease;
+    user-select: none;
 }
 
 /* Hover effect */
-.star-wrapper:hover .star-icon,
-.star-wrapper:hover ~ .star-wrapper .star-icon {
+.star-label:hover .star-char,
+.star-label:hover ~ .star-label .star-char {
     color: #FBBF24 !important;
 }
 
-/* Checked state */
-.star-wrapper input[type="radio"]:checked ~ label .star-icon,
-.star-wrapper input[type="radio"]:checked ~ .star-wrapper label .star-icon {
+/* Checked state menggunakan :has() selector */
+.star-label:has(input:checked) .star-char,
+.star-label:has(input:checked) ~ .star-label .star-char {
     color: #FBBF24 !important;
 }
 
-/* Alternative checked state using parent container */
-.star-wrapper:has(input:checked) .star-icon,
-.star-wrapper:has(input:checked) ~ .star-wrapper .star-icon {
+/* Fallback untuk browser yang tidak support :has() */
+.star-input:checked + .star-char {
     color: #FBBF24 !important;
 }
 </style>
+
+<script>
+// JavaScript fallback untuk memastikan rating berfungsi di semua browser
+document.addEventListener('DOMContentLoaded', function() {
+    const starLabels = document.querySelectorAll('.star-label');
+    
+    starLabels.forEach((label, index) => {
+        const input = label.querySelector('input');
+        
+        input.addEventListener('change', function() {
+            if (this.checked) {
+                updateStars(index);
+            }
+        });
+    });
+    
+    function updateStars(selectedIndex) {
+        const starChars = document.querySelectorAll('.star-char');
+        starChars.forEach((star, index) => {
+            if (index >= selectedIndex) {
+                star.style.color = '#FBBF24';
+            } else {
+                star.style.color = '#D1D5DB';
+            }
+        });
+    }
+    
+    // Set initial state jika ada old value
+    const checkedInput = document.querySelector('.star-input:checked');
+    if (checkedInput) {
+        const checkedLabel = checkedInput.closest('.star-label');
+        const allLabels = Array.from(starLabels);
+        const checkedIndex = allLabels.indexOf(checkedLabel);
+        updateStars(checkedIndex);
+    }
+});
+</script>
 @endsection

@@ -51,19 +51,6 @@ class ReservationController extends Controller
         return view('admin.reservations.index', compact('reservations'));
     }
 
-    // Edit and Update Payment status
-    public function editPayment(Reservation $reservation)
-    {
-        return view('admin.reservations.edit_payment', compact('reservation'));
-    }
-
-    public function updatePayment(Reservation $reservation, Request $request)
-    {
-        $reservation->payment_status = $request->payment_status;
-        $reservation->save();
-        return redirect()->route('admin.reservations.index')->with('success', 'Payment status updated successfully.');
-    }
-
     // Edit and Update Reservation Status
     public function editStatus(Reservation $reservation)
     {
@@ -80,12 +67,6 @@ class ReservationController extends Controller
 
         // Update status reservasi
         Reservation::where('order_id', $orderId)->update(['status' => $newStatus]);
-
-        // Jika status diubah menjadi 'Dibayar', perbarui juga status pembayaran.
-        // Ini akan memastikan konsistensi data.
-        if ($newStatus === 'Dibayar') {
-            Reservation::where('order_id', $orderId)->update(['payment_status' => 'paid']);
-        }
 
         // Jika status 'Selesai' atau 'Dibatalkan', stok akan dikembalikan.
         if ($newStatus === 'Selesai' || $newStatus === 'Dibatalkan') {
